@@ -1,0 +1,27 @@
+# 西部数码虚拟主机 .htaccess（Apache 2.2/2.4 兼容版）
+# 上传到网站根目录（通常是 /wwwroot/）
+# 【重要】用 FTP 上传时,Windows 自带的记事本改后缀名后,文件可能变成 .htaccess.txt
+#   请确认文件名就是 .htaccess 三个点（不是 .htaccess.txt）
+
+# ============== 1. 关闭目录索引 ==============
+# Apache 2.2 / 2.4 通用写法
+Options -Indexes
+
+# ============== 2. 禁止下载 settings.json（密码哈希） ==============
+# 用最老、最保守的写法（Apache 1.3 时代就有，绝对兼容）
+<Files "settings.json">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# ============== 3. 顺手把其它不该下载的文件也封了 ==============
+<FilesMatch "\.(ini|conf|md|py|bak|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ============== 4. 顺便把上传时的临时 htaccess 文本也封了 ==============
+<FilesMatch "^htaccess-.*\.txt$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

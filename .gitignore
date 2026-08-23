@@ -1,0 +1,11 @@
+# 运行时生成 / 用户数据，不入库
+settings.json
+LOGO.png
+LOGO-home-mobile.png
+files/
+index.html00
+*.zip
+
+# 主机环境文件
+.user.ini
+.workbuddy/

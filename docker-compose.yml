@@ -1,0 +1,24 @@
+# ============================================================
+# ODM 3D 查看器 —— Docker 部署（飞牛 NAS / 任意 Docker 主机）
+# 镜像：php:8.2-apache（Apache + PHP 一体，.htaccess 原样复用）
+# 数据：整个目录 bind mount 到 /var/www/html，文件存在 NAS 磁盘上（天然持久化）
+# ============================================================
+
+services:
+  odm-viewer:
+    image: php:8.2-apache
+    container_name: odm-viewer
+    restart: unless-stopped
+    ports:
+      - "33338:80"         # 飞牛访问：http://NAS的IP:33338/
+    volumes:
+      # 整个项目目录挂进 web 根目录（含 index.html / vendor/ / draco/ / files/ / 各 php）
+      - ./:/var/www/html
+      # PHP 上传大小等配置（替代不生效的 .user.ini）
+      - ./docker/php.ini:/usr/local/etc/php/conf.d/zz-odm.ini:ro
+      # Apache 站点配置：AllowOverride None（规则内置，不依赖 .htaccess 文件权限）
+      - ./docker/apache-site.conf:/etc/apache2/sites-enabled/000-default.conf:ro
+    environment:
+      TZ: Asia/Shanghai
+    # 确保 gzip / 缓存 / 重写模块开启（php:apache 默认已开，这里幂等兜底）
+    command: ["sh", "-c", "a2enmod rewrite deflate expires headers && apache2-foreground"]
