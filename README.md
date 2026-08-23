@@ -5,6 +5,8 @@
 团队就能在浏览器里浏览、测量、做日照分析——手机也能用。
 
 ## 主要功能
+<img width="1912" height="914" alt="image" src="https://github.com/user-attachments/assets/a6484555-5722-4530-8ada-271f565470b6" />
+<img width="1912" height="914" alt="image" src="https://github.com/user-attachments/assets/1dae307a-4f90-4e8b-bb10-51d1c88db0a7" />
 
 - **项目管理**：浏览器直接上传 GLB （或OBJ+mtl+jpg）模型包（支持大文件分片上传），自动生成项目卡片
 - **三维浏览**：拖拽旋转 / 双指缩放 / 剖切盒 / 上方向轴自动检测
