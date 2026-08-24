@@ -45,7 +45,7 @@ if (!is_array($raw['name'])) {
 $count = count($raw['name']);
 
 // 仅允许模型与材质/贴图 / iTwin metadata.xml，防任意文件上传（OBJ 工程常含 .mtl 与贴图）
-$ALLOWED = '/\.(glb|gltf|obj|mtl|jpe?g|png|bmp|tga|tiff?|webp|xml)$/i';
+$ALLOWED = '/\.(glb|gltf|obj|mtl|stl|ply|fbx|3mf|dae|3ds|pcd|jpe?g|png|bmp|tga|tiff?|webp|xml)$/i';
 if (!is_writable($filesDir)) {
     echo json_encode(['success' => false, 'error' => 'files 目录不可写，请检查权限']);
     exit;
@@ -88,7 +88,7 @@ for ($i = 0; $i < $count; $i++) {
     }
     $name = basename($raw['name'][$i]);           // basename 防目录穿越
     if (!preg_match($ALLOWED, $name)) {
-        echo json_encode(['success' => false, 'error' => '仅支持 .glb / .gltf / .obj / .mtl / 贴图 / metadata.xml 文件（' . $name . '）']);
+        echo json_encode(['success' => false, 'error' => '仅支持 GLB/GLTF/OBJ(+MTL)/STL/PLY/FBX/3MF/DAE/3DS/PCD 及贴图/metadata.xml 文件（' . $name . '）']);
         exit;
     }
     // 防重名：已存在则追加时分秒
@@ -173,9 +173,9 @@ function makeFolderName() {
     return date('Ymd_His');
 }
 
-/** 在目录中按优先级查找主模型文件名（glb > gltf > obj），大小写不敏感 */
+/** 在目录中按优先级查找主模型文件名（glb > gltf > obj > fbx > 3mf > dae > 3ds > stl > ply > pcd），大小写不敏感 */
 function findMainModel($dir) {
-    $pref = ['glb', 'gltf', 'obj'];
+    $pref = ['glb', 'gltf', 'obj', 'fbx', '3mf', 'dae', '3ds', 'stl', 'ply', 'pcd'];
     $found = [];
     foreach (array_diff(scandir($dir), ['.', '..']) as $f) {
         if (is_dir($dir . '/' . $f)) {
@@ -194,12 +194,12 @@ function findMainModel($dir) {
     return '';
 }
 
-/** 递归查找目录下所有模型文件（glb/gltf/obj），返回相对路径数组（glb>gltf>obj 优先级；同优先级按字母序）。
+/** 递归查找目录下所有模型文件（glb/gltf/obj/fbx/3mf/dae/3ds/stl/ply/pcd），返回相对路径数组（按优先级；同优先级按字母序）。
  *  用于支持 iTwin Capture 等分块（Tile）输出的实景模型：一个项目含多个 obj，需全部加载并自动拼接。 */
 function findAllModels($dir, $prefix = '') {
     $result = [];
     if (!is_dir($dir)) return $result;
-    $prefRank = ['glb' => 0, 'gltf' => 1, 'obj' => 2];
+    $prefRank = ['glb' => 0, 'gltf' => 1, 'obj' => 2, 'fbx' => 3, '3mf' => 4, 'dae' => 5, '3ds' => 6, 'stl' => 7, 'ply' => 8, 'pcd' => 9];
     $entries  = array_diff(scandir($dir), ['.', '..']);
     $files = [];
     $dirs  = [];
@@ -210,7 +210,7 @@ function findAllModels($dir, $prefix = '') {
             $dirs[] = $f;
         } else {
             $e = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-            if (in_array($e, ['glb', 'gltf', 'obj'], true)) $files[] = $f;
+            if (in_array($e, ['glb', 'gltf', 'obj', 'fbx', '3mf', 'dae', '3ds', 'stl', 'ply', 'pcd'], true)) $files[] = $f;
         }
     }
     usort($files, function ($a, $b) use ($prefRank) {
@@ -293,7 +293,7 @@ function rebuildManifest($filesDir) {
     }
 
     // 2) files/ 根目录下的扁平模型（兼容历史平铺文件：Duck.glb 等）
-    foreach (glob($filesDir . '/*.{glb,gltf,obj}', GLOB_BRACE) as $p) {
+    foreach (glob($filesDir . '/*.{glb,gltf,obj,fbx,3mf,dae,3ds,stl,ply,pcd}', GLOB_BRACE) as $p) {
         if (is_dir($p)) {
             continue;
         }

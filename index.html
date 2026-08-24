@@ -1303,7 +1303,7 @@
       <span class="pd-close" id="pdClose" title="关闭">✕</span>
     </span>
   </div>
-  <div class="pd-hint" id="pdHint">files 文件夹暂无模型。请将 .glb / .gltf / .obj 放入 files；若空间开启目录索引会自动列出，否则请上传 files/manifest.js 清单</div>
+  <div class="pd-hint" id="pdHint">files 文件夹暂无模型。支持 GLB / GLTF / OBJ(+MTL) / STL / PLY / FBX / 3MF / DAE / 3DS / PCD，放入 files 或用上传按钮即可；若空间开启目录索引会自动列出，否则请上传 files/manifest.js 清单</div>
   <div class="pd-list" id="pdList"></div>
   <div class="pd-pager" id="pdPager" style="display:none;">
     <button class="pd-page" id="pdPrev">← 上一页</button>
@@ -1343,7 +1343,7 @@
     <label class="dlg-label">备注（选填）</label>
     <input type="text" id="projRemarkInput" placeholder="如：2026年7月测绘数据" autocomplete="off">
     <label class="dlg-label">模型文件（支持 glb / gltf / obj / mtl / 贴图 / metadata.xml，可多选）</label>
-    <input type="file" id="uploadFileInput" accept=".glb,.gltf,.obj,.mtl,image/*,.xml,application/xml,text/xml" multiple>
+    <input type="file" id="uploadFileInput" accept=".glb,.gltf,.obj,.mtl,.stl,.ply,.fbx,.3mf,.dae,.3ds,.pcd,image/*,.xml,application/xml,text/xml" multiple>
     <label class="dlg-label">封面图（选填，将自动压缩到 800×500，作为首页大图列表的封面）</label>
     <input type="file" id="coverFileInput" accept="image/*">
     <div class="cover-preview" id="coverPreview" style="display:none;">
@@ -1693,6 +1693,14 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+// 额外 3D 格式加载器（均来自本地 vendor，无外网依赖）
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { ColladaLoader } from 'three/addons/loaders/ColladaLoader.js';
+import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
+import { TDSLoader } from 'three/addons/loaders/TDSLoader.js';
+import { PCDLoader } from 'three/addons/loaders/PCDLoader.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 // 粗线 Line2（WebGL 下真实支持 linewidth 像素值，比 LineBasicMaterial 强）
@@ -6392,7 +6400,7 @@ function loadProjectFile(proj) {
   // 旧格式兜底：无 folder 且无 main → 依次尝试扩展名（兼容历史清单 / 平铺文件）
   if (!proj.folder && !proj.main) {
     showLoading(true, '正在加载：' + proj.name, 100);
-    tryLoadProjectExt(proj.name, ['glb', 'gltf', 'obj'], 0);
+    tryLoadProjectExt(proj.name, ['glb', 'gltf', 'obj', 'stl', 'ply', 'fbx', '3mf', 'dae', '3ds', 'pcd'], 0);
     return;
   }
   const base = proj.folder ? ('files/' + encodeURIComponent(proj.folder) + '/') : 'files/';
@@ -6547,7 +6555,62 @@ function exportMergedGLB(combined, proj, base) {
   }
 }
 
-/** 按扩展名解析模型缓冲：glb/gltf → parseGLB；obj → 解析并加载同目录 MTL */
+/** 把单几何体（STL/PLY 返回 BufferGeometry）包成带默认材质的 Group，交给统一的 onModelLoaded 流程 */
+function wrapGeometryToScene(geo) {
+  if (!geo.attributes.normal) geo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({ color: 0xcfcfcf, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide });
+  const mesh = new THREE.Mesh(geo, mat);
+  const g = new THREE.Group();
+  g.add(mesh);
+  return g;
+}
+
+/** 额外格式解析分发：stl / ply / pcd / fbx / 3mf / dae / 3ds。
+ *  buf：ArrayBuffer；ext：小写扩展名；base：项目目录（用于 FBX/DAE/3DS 解析外部贴图相对路径）。
+ *  各 loader 返回类型不一（geometry / Points / Group / {scene}），统一包成 { scene } 后交给 onModelLoaded。 */
+function loadExtraFormat(buf, ext, base) {
+  const ab = buf instanceof ArrayBuffer ? buf : (buf.buffer || buf);
+  let scene = null;
+  switch (ext) {
+    case 'stl': {
+      const geo = new STLLoader().parse(ab);
+      scene = wrapGeometryToScene(geo);
+      break;
+    }
+    case 'ply': {
+      const geo = new PLYLoader().parse(ab);
+      scene = wrapGeometryToScene(geo);
+      break;
+    }
+    case 'pcd': {
+      scene = new PCDLoader().parse(ab);   // 直接返回 THREE.Points（点云，仅浏览/不参与网格测量）
+      break;
+    }
+    case 'fbx': {
+      scene = new FBXLoader().parse(ab, base || '');   // path 用于解析外部贴图
+      break;
+    }
+    case '3mf': {
+      scene = new ThreeMFLoader().parse(ab);
+      break;
+    }
+    case 'dae': {
+      const collada = new ColladaLoader().parse(new TextDecoder().decode(ab), base || '');
+      scene = (collada && collada.scene) ? collada.scene : collada;
+      break;
+    }
+    case '3ds': {
+      scene = new TDSLoader().parse(ab, base || '');   // path 用于解析外部贴图
+      break;
+    }
+    default:
+      throw new Error('暂不支持的格式：' + ext);
+  }
+  if (!scene) throw new Error(ext + ' 解析结果为空');
+  onModelLoaded({ scene });
+}
+
+/** 按扩展名解析模型缓冲：glb/gltf → parseGLB；obj → 解析并加载同目录 MTL；其余扩展名 → loadExtraFormat */
 function loadModelBuffer(buf, ext, base, proj) {
   modelBaseName = (proj.main || '').replace(/\.[^.]+$/, '');
   try {
@@ -6589,9 +6652,14 @@ function loadModelBuffer(buf, ext, base, proj) {
           onModelLoaded({ scene: obj });
           document.getElementById('projectDropdown').classList.remove('active');
         });
-    } else {
+    } else if (ext === 'glb' || ext === 'gltf') {
       lastExt = ext;                                            // 标记 GLB/GLTF 格式（信息面板显示用；与 OBJ 分支对称）
       parseGLB(buf);
+      document.getElementById('projectDropdown').classList.remove('active');
+    } else {
+      // STL / PLY / PCD / FBX / 3MF / DAE / 3DS 等额外格式
+      lastExt = ext;
+      loadExtraFormat(buf, ext, base);
       document.getElementById('projectDropdown').classList.remove('active');
     }
   } catch (e) {
@@ -6645,8 +6713,13 @@ function tryLoadProjectExt(name, exts, i) {
               onModelLoaded({ scene: obj });
               document.getElementById('projectDropdown').classList.remove('active');
             });
-        } else {
+        } else if (ext === 'glb' || ext === 'gltf') {
           parseGLB(buf);
+          document.getElementById('projectDropdown').classList.remove('active');
+        } else {
+          // STL / PLY / PCD / FBX / 3MF / DAE / 3DS 等额外格式
+          lastExt = ext;
+          loadExtraFormat(buf, ext, 'files/');
           document.getElementById('projectDropdown').classList.remove('active');
         }
       } catch (e) {
@@ -6660,7 +6733,7 @@ function tryLoadProjectExt(name, exts, i) {
 function loadProjectFileViaPicker(name) {
   const picker = document.createElement('input');
   picker.type = 'file';
-  picker.accept = '.glb,.gltf,.obj,.mtl,image/*';
+  picker.accept = '.glb,.gltf,.obj,.mtl,.stl,.ply,.fbx,.3mf,.dae,.3ds,.pcd,image/*';
   picker.multiple = true;
   picker.style.display = 'none';
     picker.addEventListener('change', (e) => {
@@ -6669,6 +6742,7 @@ function loadProjectFileViaPicker(name) {
       const objFile = files.find(f => /\.obj$/i.test(f.name));
       const mtlFile = files.find(f => /\.mtl$/i.test(f.name));
       const gltfFile = files.find(f => /\.(glb|gltf)$/i.test(f.name));
+      const extraFile = files.find(f => /\.(stl|ply|fbx|3mf|dae|3ds|pcd)$/i.test(f.name));
       if (objFile) {
         showLoading(true, '正在加载：' + name, 100);
         loadLocalObj(objFile, mtlFile, files);
@@ -6689,6 +6763,25 @@ function loadProjectFileViaPicker(name) {
         };
         reader.onerror = () => { showLoading(false); alert('文件读取失败'); };
         reader.readAsArrayBuffer(gltfFile);
+      } else if (extraFile) {
+        // 额外格式（STL/PLY/FBX/3MF/DAE/3DS/PCD）：本地选择兜底
+        showLoading(true, '正在加载：' + name, 100);
+        currentModelId = extraFile.name;
+        const ext = extraFile.name.split('.').pop().toLowerCase();
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            lastExt = ext;
+            loadExtraFormat(ev.target.result, ext, '');
+            document.getElementById('projectDropdown').classList.remove('active');
+          } catch (err) {
+            console.error(err);
+            showLoading(false);
+            alert('模型解析失败：' + err.message);
+          }
+        };
+        reader.onerror = () => { showLoading(false); alert('文件读取失败'); };
+        reader.readAsArrayBuffer(extraFile);
       }
     });
   document.body.appendChild(picker);
