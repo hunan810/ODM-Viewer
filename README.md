@@ -4,7 +4,7 @@
 把 ODM（OpenDroneMap）/大疆智图等软件导出的三维成果上传后，
 团队就能在浏览器里浏览、测量、做日照分析——手机也能用。
 
-![界面截图](images/1.jpg)
+![界面截图](/images/1.jpg)
 
 ## 支持的 3D 格式
 
@@ -21,9 +21,9 @@ GLB / GLTF（含 Draco 压缩）/ OBJ（+MTL 贴图）/ STL / PLY / FBX / 3MF / 
 - **截图导出**：当前视图一键导出 PNG
 - **系统设置**：站点名称、LOGO、管理密码全部在网页里改，不用碰代码
 
-![界面截图](images/2.jpg)
-![界面截图](images/3.jpg).
-![界面截图](images/4.jpg)
+![界面截图](/images/2.jpg)
+![界面截图](/images/3.jpg).
+![界面截图](/images/4.jpg)
 
 ## 部署方式一：任意 PHP 虚拟主机（推荐入门）
 
