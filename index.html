@@ -165,7 +165,7 @@
     flex-shrink: 0;        /* 不被左右工具组挤压，避免文字被截断 */
     min-width: 0;
   }
-  /* 品牌 LOGO：建议透明底 PNG，约 3.33:1（如 1050×315），按 28px 高显示约 93px 宽；未上传 LOGO 时自动隐藏 */
+  /* 品牌 LOGO：在「系统设置」上传后显示；未上传时自动隐藏（开源版无内置 LOGO） */
   .brand-logo {
     height: 28px; width: auto; display: block;
     background: #fff;     /* PNG 透明背景，叠加深色顶栏前先垫白底，避免白边白字淹没 */
@@ -541,8 +541,6 @@
   /* 基础列内部固定两列排布（普通/高级模式一致，点高级后基础列同样保持两列） */
   .param-body { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; align-items: start; }
   .param-body .param-sec { grid-column: 1 / -1; }
-  /* 通栏行：占满两列（用于奇数个滑块补齐，如纹理亮度） */
-  .param-row-wide { grid-column: 1 / -1; }
   #paramDialog .param-panel.advanced .param-body { width: 398px; }
   /* 高级模式：面板宽度随四列内容自适应、向左加宽；屏幕不够宽时列自动换行不溢出 */
   #paramDialog .param-panel.advanced { width: auto; max-width: calc(100vw - 44px); }
@@ -953,7 +951,7 @@
 <!-- ============== 首页：大图项目列表 ============== -->
 <div class="home-page" id="homePage">
   <div class="home-topbar">
-    <div class="brand"><img class="brand-logo brand-logo-pc" src="LOGO.png" alt="LOGO" onerror="this.style.display='none'"><img class="brand-logo brand-logo-mobile" src="LOGO-home-mobile.png" alt="LOGO" onerror="this.style.display='none'"><span class="brand-text"></span></div>
+    <div class="brand"><img class="brand-logo brand-logo-pc" src="LOGO.png" alt=""><img class="brand-logo brand-logo-mobile" src="LOGO-home-mobile.png" alt=""><span class="brand-text"></span></div>
     <div class="home-topbar-right">
       <button class="btn btn-accent" id="btnHomeUpload" title="上传新项目到服务器 files 文件夹" style="display:none">
         <span>⬆️</span><span>上传项目</span>
@@ -988,7 +986,7 @@
   <button class="btn" id="btnBackHome" title="返回首页（项目列表）">
     <span>←</span><span class="back-home-full">返回首页</span><span class="back-home-short">首页</span>
   </button>
-  <div class="brand"><img class="brand-logo" src="LOGO.png" alt="LOGO" onerror="this.style.display='none'"><span class="brand-text"></span></div>
+  <div class="brand"><img class="brand-logo" src="LOGO.png" alt=""><span class="brand-text"></span></div>
   <div class="top-project-name empty" id="topProjectName" title="">未选择项目</div>
   <div class="toolbar toolbar-right">
     <!-- 查看页「上传项目」按钮已移除：上传入口统一收归首页，且仅在输入密码进入管理模式后可见 -->
@@ -1086,35 +1084,8 @@
         <div class="dialog-hint">仅对当前模型生效，与其它模型互不影响。</div>
         <div class="param-cols">
         <!-- ============ 高级模式：四列布局（左3列高级 + 右1列基础），减少滚动 ============ -->
-        <!-- 第1列：渲染 + 氛围 -->
+        <!-- 第1列：氛围（渲染分节已移入基础列，普通模式也可见） -->
         <div class="param-col param-adv">
-          <div class="param-sec">渲染</div>
-          <div class="param-row param-row-select">
-            <div class="param-label">色调映射</div>
-            <select id="pxTone" class="param-select" title="整体画风的“底片”算法">
-              <option value="aces">ACES 电影感（默认）</option>
-              <option value="linear">Linear 直白明亮</option>
-              <option value="reinhard">Reinhard 柔和</option>
-              <option value="agx">AgX 电影感+（色彩更准）</option>
-            </select>
-          </div>
-          <div class="param-row param-row-select">
-            <div class="param-label">渲染精度（像素比）</div>
-            <select id="pxPixelRatio" class="param-select" title="调低可显著提升手机流畅度">
-              <option value="0">自动（PC 跟随设备 / 手机 1×）</option>
-              <option value="0.5">0.5× 最流畅</option>
-              <option value="0.75">0.75×</option>
-              <option value="1">1.0×</option>
-              <option value="1.25">1.25×</option>
-              <option value="1.5">1.5×</option>
-              <option value="2">2.0×</option>
-            </select>
-          </div>
-          <div class="param-row">
-            <div class="param-label">视野 FOV <span class="param-val" id="valFov">50°</span></div>
-            <input type="range" id="pxFov" min="20" max="90" step="1" value="50">
-          </div>
-
           <div class="param-sec">氛围</div>
           <div class="param-row param-row-switch">
             <div class="param-label">雾效（远处淡出）</div>
@@ -1230,7 +1201,7 @@
           <div class="param-label">补光强度 <span class="param-val" id="valDir2">0.30</span></div>
           <input type="range" id="pxDir2" min="0" max="1.0" step="0.05" value="0.3">
         </div>
-        <div class="param-row param-row-wide">
+        <div class="param-row">
           <div class="param-label">纹理亮度 <span class="param-val" id="valTexBright">1.00</span></div>
           <input type="range" id="pxTexBright" min="0.5" max="1.5" step="0.05" value="1.0">
         </div>
@@ -1241,6 +1212,36 @@
         <div class="param-row param-row-switch">
           <div class="param-label" title="远景更清晰；GLB 模型开启后贴图可能有接缝">mipmap 远景清晰</div>
           <label class="switch"><input type="checkbox" id="pxMipmap" checked><span class="slider"></span></label>
+        </div>
+        <div class="param-row param-row-switch">
+          <div class="param-label">底部参考网格</div>
+          <label class="switch"><input type="checkbox" id="pxGridOn" checked><span class="slider"></span></label>
+        </div>
+        <div class="param-sec">渲染</div>
+        <div class="param-row param-row-select">
+          <div class="param-label">色调映射</div>
+          <select id="pxTone" class="param-select" title="整体画风的“底片”算法">
+            <option value="aces">ACES 电影感（默认）</option>
+            <option value="linear">Linear 直白明亮</option>
+            <option value="reinhard">Reinhard 柔和</option>
+            <option value="agx">AgX 电影感+（色彩更准）</option>
+          </select>
+        </div>
+        <div class="param-row param-row-select">
+          <div class="param-label">渲染精度（像素比）</div>
+          <select id="pxPixelRatio" class="param-select" title="调低可显著提升手机流畅度">
+            <option value="0">自动（PC 跟随设备 / 手机 1×）</option>
+            <option value="0.5">0.5× 最流畅</option>
+            <option value="0.75">0.75×</option>
+            <option value="1">1.0×</option>
+            <option value="1.25">1.25×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2.0×</option>
+          </select>
+        </div>
+        <div class="param-row">
+          <div class="param-label">视野 FOV <span class="param-val" id="valFov">50°</span></div>
+          <input type="range" id="pxFov" min="20" max="90" step="1" value="50">
         </div>
       </div>
       </div><!-- /.param-cols -->
@@ -1897,6 +1898,7 @@ const DEFAULT_RENDER_PARAMS = {
   dir2: 0.3,            // 补光强度：0 ~ 1.0
   texBright: 1.0,       // 纹理亮度（材质色彩倍率）：0.5 ~ 1.5
   mipmap: true,         // mipmap 开关（GLB 默认关以防贴图接缝，OBJ 默认开）
+  gridOn: true,         // 底部参考网格显示开关
   // ---------- 高级参数（默认全部中性 = 不改变原有画面） ----------
   toneMapping: 'aces',  // 色调映射：aces | linear | reinhard | agx
   pixelRatio: 0,        // 渲染精度：0=自动（跟随设备）；否则 0.5~2 固定倍率
@@ -2062,6 +2064,8 @@ function applyAdvancedLive() {
       scene.fog.color.set(renderParams.fogColor);
     } else if (scene.fog) { scene.fog = null; }
   } else if (scene.fog) { scene.fog = null; }
+  // 底部参考网格显隐
+  if (grid) grid.visible = !!renderParams.gridOn;
   // 自定义背景色
   if (renderParams.bgOn) {
     scene.background = new THREE.Color(renderParams.bgColor);
@@ -2238,6 +2242,7 @@ function syncParamControls() {
   set('pxDir2', renderParams.dir2);           setVal('valDir2', renderParams.dir2);
   set('pxTexBright', renderParams.texBright); setVal('valTexBright', renderParams.texBright);
   set('pxMipmap', renderParams.mipmap);
+  set('pxGridOn', renderParams.gridOn);
   // —— 高级参数 ——
   const setInt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = Math.round(v); };
   set('pxTone', renderParams.toneMapping);
@@ -2299,6 +2304,8 @@ function bindParamDialog() {
   if (env) env.addEventListener('change', () => { renderParams.envOn = env.checked; applyRenderLive(); scheduleSave(); });
   const mm = document.getElementById('pxMipmap');
   if (mm) mm.addEventListener('change', () => { renderParams.mipmap = mm.checked; applyTextureParams(); scheduleSave(); });
+  const gridSw = document.getElementById('pxGridOn');
+  if (gridSw) gridSw.addEventListener('change', () => { renderParams.gridOn = gridSw.checked; applyAdvancedLive(); scheduleSave(); });
 
   // —— 高级参数绑定：滑块/开关/下拉/颜色，各自走对应的应用函数（均为零贴图上传，实时生效） ——
   const bindAdvSlider = (id, valId, key, applyFn, isInt, suffix) => {
@@ -3872,6 +3879,8 @@ function onPointerMoveMeasure(e) {
     scheduleOcclusionRefresh();
     return;
   }
+  // 2D 俯视下拖动测点：同样拍平到底部，保持平面测量语义（不会拖出高差）
+  if (viewMode === '2d') p.y = modelBottomY();
   draggingPoint.path.points[draggingPoint.index].copy(p);
   dragMoved = true;
   rebuildPath(draggingPoint.path);      // 数值与几何实时刷新
@@ -4430,9 +4439,20 @@ function clearFocusHighlight() {
 }
 
 // ---- 距离测量：连续取点 ----
+/** 2D 俯视模式下测量落点用：模型包围盒最低点 y（微量下移，与底面错开更清晰）
+ *  用途：2D 正射俯视下测距/测面积落点统一拍平到该高度——只算水平投影距离/平面面积；
+ *  切回 3D 后这些线仍在模型底部，为水平直线。3D 模式下创建的测量不受影响。 */
+function modelBottomY() {
+  if (!currentModel) return 0;
+  const box = new THREE.Box3().setFromObject(currentModel);
+  return box.min.y - Math.max((box.max.y - box.min.y) * 0.002, 0.2);
+}
+
 function addDistancePoint(point) {
   const path = currentPath;
   if (!path) return;   // 防御：未进入距离测量工具时点击为空，避免空指针崩溃
+  // 2D 俯视：拍平到底部（两点同高 → 高差为 0，只显示一条水平线 = 投影距离）
+  if (viewMode === '2d') point.y = modelBottomY();
   path.points.push(point);
 
   // 添加测点标记（红色小球）
@@ -4445,31 +4465,9 @@ function addDistancePoint(point) {
   if (path.points.length === 2) {
     rebuildPath(path);
   } else if (path.points.length > 2) {
-    // 第 3 个点起：增量绘制与前一点的单段（多点折线）
-    const p1 = path.points[path.points.length - 2];
-    const p2 = path.points[path.points.length - 1];
-
-    const ret = createLine(p1, p2);
-    measurementGroup.add(ret.line);
-    path.objects.push(ret.line);
-    path.segments = path.segments || [];
-    path.segments.push(ret);  // 保存段引用，供穿模检测使用
-
-    const len = p1.distanceTo(p2);
-    const dz  = p2.y - p1.y;
-    // 长度为 0（0m）的重合段不显示任何标注；高差为 0（0 高程）不显示高差子标注
-    if (len >= LABEL_ZERO_EPS) {
-      const mid = p1.clone().add(p2).multiplyScalar(0.5);
-      const sub = Math.abs(dz) >= LABEL_ZERO_EPS
-        ? `<span class="sub">高差 ${dz >= 0 ? '+' : ''}${dz.toFixed(3)} m</span>` : '';
-      const label = createLabel(`${len.toFixed(3)} m${sub}`, mid);
-      measurementGroup.add(label);
-      path.objects.push(label);
-    }
-
-    // 累计标签跟随到最后一个点
-    updateDistanceTotalLabel(path);
-    scheduleOcclusionRefresh();   // 落点后安排刷新穿模检测
+    // 第 3 个点起：统一全量重建（多点折线：每段实线 + 段标签含高差子标注，不再画直角三角形虚线）。
+    // 原增量绘制会残留第 1→2 点的两点直角三角形（高差/投影虚线），落第 3 点后画面上虚线不消失——本修复的 BUG。
+    rebuildPath(path);
   }
 }
 
@@ -4484,7 +4482,7 @@ function updateDistanceTotalLabel(path) {
   }
   const last = path.points[path.points.length - 1];
   const lbl = createLabel(
-    `∑ ${total.toFixed(3)} m`,
+    `总长 ${total.toFixed(3)} m`,
     last.clone().add(new THREE.Vector3(0, 1.2, 0))
   );
   measurementGroup.add(lbl);
@@ -4497,6 +4495,8 @@ function updateDistanceTotalLabel(path) {
 function addAreaPoint(point) {
   const path = currentPath;
   if (!path) return;   // 防御：未进入面积测量工具时点击为空，避免空指针崩溃
+  // 2D 俯视：拍平到底部（所有点同高 → 面积为水平投影面积，填充面贴底部）
+  if (viewMode === '2d') point.y = modelBottomY();
   path.points.push(point);
 
   // 测点标记
