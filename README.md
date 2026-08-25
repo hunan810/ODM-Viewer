@@ -1,17 +1,24 @@
-# ODM-Viewer — 航拍实景三维模型在线查看器
+# ODM-Viewer — 航拍实景三维模型在线查看器 / Web Viewer for Drone Photogrammetry 3D Models
 
 一个部署在普通 PHP 虚拟主机或 Docker 上的**实景三维（摄影测量）模型查看系统**。
 把 ODM（OpenDroneMap）/大疆智图等软件导出的三维成果上传后，
 团队就能在浏览器里浏览、测量、做日照分析——手机也能用。
 
-![界面截图](/images/1.jpg)
+A **photogrammetry 3D model viewer** that runs on any ordinary PHP host or Docker.
+Upload models exported from ODM (OpenDroneMap) / DJI Terra and your team can
+browse, measure, and run sunlight analysis in the browser — mobile friendly too.
 
-## 支持的 3D 格式
+![界面截图 / Screenshot](/images/1.jpg)
+
+## 支持的 3D 格式 / Supported 3D Formats
 
 GLB / GLTF（含 Draco 压缩）/ OBJ（+MTL 贴图）/ STL / PLY / FBX / 3MF / DAE(Collada) / 3DS / PCD（点云）。
 覆盖航拍实景、3D 打印、CAD 导出、点云扫描等主流场景，浏览器直接打开，无需安装软件。
 
-## 主要功能
+GLB / GLTF (incl. Draco compression) / OBJ (+MTL textures) / STL / PLY / FBX / 3MF / DAE (Collada) / 3DS / PCD (point cloud).
+Covers drone survey, 3D printing, CAD export, point-cloud scanning — open directly in the browser, no software install required.
+
+## 主要功能 / Key Features
 
 - **项目管理**：浏览器直接上传模型包（支持大文件分片上传），自动生成项目卡片
 - **三维浏览**：拖拽旋转 / 双指缩放 / 剖切盒 / 上方向轴自动检测
@@ -21,23 +28,41 @@ GLB / GLTF（含 Draco 压缩）/ OBJ（+MTL 贴图）/ STL / PLY / FBX / 3MF / 
 - **截图导出**：当前视图一键导出 PNG
 - **系统设置**：站点名称、LOGO、管理密码全部在网页里改，不用碰代码
 
-![界面截图](/images/2.jpg)
-![界面截图](/images/3.jpg).
-![界面截图](/images/4.jpg)
+- **Project management**: upload model bundles from the browser (large files via chunked upload), auto-generate project cards
+- **3D browsing**: drag-rotate / pinch-zoom / clip box / auto up-axis detection
+- **Measurement**: distance, area, coordinate pinning (WGS84 lon/lat)
+- **Sunlight analysis**: simulate sun position by date & time, render shadows (SunCalc built-in)
+- **Rendering tweaks**: brightness / contrast / saturation / ambient light / shadows / pixel ratio and more
+- **Screenshot export**: one-click PNG of the current view
+- **System settings**: site name, LOGO, admin password all editable in the UI — no code editing
 
-## 部署方式一：任意 PHP 虚拟主机（推荐入门）
+![界面截图 / Screenshot](/images/2.jpg)
+![界面截图 / Screenshot](/images/3.jpg).
+![界面截图 / Screenshot](/images/4.jpg)
+
+## 部署方式一：任意 PHP 虚拟主机（推荐入门）/ Option 1: Any PHP Host (Easiest)
 
 要求：PHP 7.4+（建议 8.x）、支持 `.htaccess` 的 Apache 主机（西部数码、阿里云虚拟主机等均可）。
+
+Requirements: PHP 7.4+ (8.x recommended), Apache host with `.htaccess` support (Western Digital, Alibaba Cloud shared hosting, etc.).
 
 1. 把本目录全部文件上传到网站根目录
 2. 浏览器打开站点，即出现项目首页
 3. 点右上角「管理项目」，输入默认密码 `admin123`
 4. **进去后第一件事**：点「系统设置」→ 修改密码、填站点名称、上传自己的 LOGO
 
+1. Upload all files in this directory to your web root
+2. Open the site in a browser — the project home page appears
+3. Click **Manage Projects** (top right), enter the default password `admin123`
+4. **First thing after login**: open **System Settings** → change the password, set the site name, upload your LOGO
+
 > 首次使用时 `settings.json` 和 LOGO 文件都不存在，这是正常的——保存一次系统设置后会自动生成。
 > `settings.json` 已被 `.htaccess` 拦截，无法从外网下载，密码哈希不会泄露。
+>
+> On first use, `settings.json` and LOGO files do not exist — this is normal. They are auto-generated after you save system settings once.
+> `settings.json` is blocked by `.htaccess`, so it cannot be downloaded from the web — the password hash won't leak.
 
-## 部署方式二：Docker（NAS / 服务器）
+## 部署方式二：Docker（NAS / 服务器）/ Option 2: Docker (NAS / Server)
 
 ```bash
 cd ODM-Viewer
@@ -47,31 +72,48 @@ docker compose up -d
 浏览器访问 `http://服务器IP:33338/` 即可。数据（上传的模型）都在项目目录的 `files/` 里，
 容器删了数据也在。
 
-## 目录结构
+Open `http://server-ip:33338/` in a browser. Uploaded models are stored in the project's `files/` directory — the data survives even if you delete the container.
+
+## 目录结构 / Directory Layout
 
 ```
 ODM-Viewer/
 ├── index.html            # 前端主程序（单文件，含全部 UI 和逻辑）
+│                         # Front-end app (single file: all UI + logic)
 ├── *.php                 # 后端：上传 / 删除 / 编辑 / 保存参数 / 系统设置
+│                         # Back-end: upload / delete / edit / save params / settings
 ├── vendor/               # 前端依赖（three.js、SunCalc、BVH 加速等，离线可用）
-├── draco/                # Draco 模型解码器
+│                         # Front-end deps (three.js, SunCalc, BVH, offline)
+├── draco/                # Draco 模型解码器 / Draco decoder
 ├── docker/               # Docker 用的 php.ini 与 Apache 配置
-├── docker-compose.yml    # Docker 一键部署
+│                         # php.ini & Apache config for Docker
+├── docker-compose.yml    # Docker 一键部署 / Docker one-shot deploy
 └── .htaccess             # 关目录索引 / 拦截 settings.json
+                          # Disable dir index / block settings.json
 ```
 
-## 模型数据放哪
+## 模型数据放哪 / Where Model Data Goes
 
 上传的项目都存在 `files/` 目录下（每个项目一个文件夹）。
 也可以不经过网页上传，直接把 ODM 导出的 GLB 包手工放进 `files/`，
 再通过首页「管理项目 → 编辑」补全名称、封面和 GPS 基准。
 
-## 安全说明
+Uploaded projects live under `files/` (one folder per project).
+You can also skip the web upload and drop an ODM-exported GLB bundle into `files/` directly,
+then use **Manage Projects → Edit** on the home page to fill in the name, cover image, and GPS datum.
+
+## 安全说明 / Security Notes
 
 - 所有写操作（上传 / 删除 / 保存）都要求管理密码，密码以 SHA-256 哈希存储
 - 上传有扩展名白名单 + MIME 校验，路径参数做了防目录穿越处理
 - `settings.json` 已通过 Apache 规则禁止外网访问
 
-## 许可证
+- All write operations (upload / delete / save) require the admin password, stored as a SHA-256 hash
+- Uploads are filtered by extension whitelist + MIME check; path params are guarded against directory traversal
+- `settings.json` is blocked from external access via Apache rules
+
+## 许可证 / License
 
 MIT License — 可自由使用、修改、商用，请保留 LICENSE 文件。
+
+MIT License — free to use, modify, and commercialize; please keep the LICENSE file.
