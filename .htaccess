@@ -1,5 +1,5 @@
 # 西部数码虚拟主机 .htaccess（Apache 2.2/2.4 兼容版）
-# 上传到网站根目录（通常是 /wwwroot/）
+# 【位置】和 index.html 放在同一个目录（例如 /3d/ 子目录），不要放网站根目录
 # 【重要】用 FTP 上传时,Windows 自带的记事本改后缀名后,文件可能变成 .htaccess.txt
 #   请确认文件名就是 .htaccess 三个点（不是 .htaccess.txt）
 
@@ -25,3 +25,30 @@ Options -Indexes
     Order allow,deny
     Deny from all
 </FilesMatch>
+
+# ============== 5. 开启 gzip 压缩（手机加载提速关键） ==============
+# OBJ/MTL 是文本格式，压缩后传输量能减 3~5 倍；JS/CSS/JSON 同理
+# 图片（jpg/png/glb 等）本身已压缩，不重复压，省服务器 CPU
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/javascript application/json application/xml image/svg+xml
+    <FilesMatch "\.(obj|mtl)$">
+        SetOutputFilter DEFLATE
+    </FilesMatch>
+</IfModule>
+
+# ============== 6. 浏览器缓存（避免手机每次重新下载） ==============
+# 模型文件在 files/时间戳文件夹 里按版本隔离，内容不变 → 缓存 30 天
+# index.html 不缓存（要实时拿到最新版）；JS/CSS 缓存 1 小时（兼顾更新与提速）
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 0 seconds"
+    ExpiresByType application/javascript "access plus 1 hour"
+    ExpiresByType text/css "access plus 1 hour"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType font/woff2 "access plus 30 days"
+    ExpiresByType application/octet-stream "access plus 30 days"
+    ExpiresDefault "access plus 1 hour"
+</IfModule>
