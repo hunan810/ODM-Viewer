@@ -12,9 +12,35 @@ error_reporting(0);
 ini_set('display_errors', '0');
 require_once __DIR__ . '/settings_lib.php';
 
+// 首次运行时确保 settings.json 存在且可写（避免「Failed to fetch」根因）
+function odmEnsureSettingsFile() {
+    $path = __DIR__ . '/settings.json';
+    if (is_file($path) && is_writable($path)) return;
+    $dir = dirname($path);
+    if (!is_writable($dir)) return;   // 交给 odmWriteSettings 给出具体错误
+    if (!is_file($path)) {
+        @file_put_contents($path, json_encode([
+            'siteName' => '',
+            'pwdHash'  => odmGetPwdHash(),
+        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    }
+    @chmod($path, 0666);
+}
+odmEnsureSettingsFile();
+
 function odmWriteSettings($data) {
     $path = __DIR__ . '/settings.json';
-    return @file_put_contents($path, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) !== false;
+    $dir  = dirname($path);
+    // 首次保存时如果 settings.json 不存在，先确认目录可写
+    if (!is_writable($dir)) {
+        return ['ok' => false, 'err' => '目录不可写：' . $dir . '（请右键 - 属性 - 安全 - 编辑，给当前用户加"修改"权限）'];
+    }
+    $bytes = @file_put_contents($path, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    if ($bytes === false) {
+        $err = error_get_last();
+        return ['ok' => false, 'err' => '写入 settings.json 失败：' . ($err['message'] ?? '未知错误')];
+    }
+    return ['ok' => true];
 }
 
 // ---------- GET：返回站点名（公开，不含密码哈希）----------
@@ -55,16 +81,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $allowed = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'];
     function odmSaveLogo($field, $dest) {
         global $allowed;
-        if (!isset($_FILES[$field]) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) return;
+        if (!isset($_FILES[$field]) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) return ['ok' => true];
         $ext = strtolower(pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, $allowed, true)) return;
-        @move_uploaded_file($_FILES[$field]['tmp_name'], __DIR__ . '/' . $dest);
+        if (!in_array($ext, $allowed, true)) return ['ok' => false, 'err' => 'LOGO 格式不支持：' . $ext];
+        $dir = dirname(__DIR__ . '/' . $dest);
+        if (!is_writable($dir)) return ['ok' => false, 'err' => '目录不可写：' . $dir];
+        $ok = @move_uploaded_file($_FILES[$field]['tmp_name'], __DIR__ . '/' . $dest);
+        if (!$ok) {
+            $err = error_get_last();
+            return ['ok' => false, 'err' => '保存 LOGO 失败：' . ($err['message'] ?? '未知错误')];
+        }
+        return ['ok' => true];
     }
-    odmSaveLogo('logoPC', 'LOGO.png');
-    odmSaveLogo('logoMobile', 'LOGO-home-mobile.png');
+    $r1 = odmSaveLogo('logoPC', 'LOGO.png');
+    if (!$r1['ok']) { echo json_encode(['success' => false, 'error' => $r1['err']]); exit; }
+    $r2 = odmSaveLogo('logoMobile', 'LOGO-home-mobile.png');
+    if (!$r2['ok']) { echo json_encode(['success' => false, 'error' => $r2['err']]); exit; }
 
-    if (!odmWriteSettings($s)) {
-        echo json_encode(['success' => false, 'error' => '写入 settings.json 失败（请检查写权限：chmod 666 settings.json）']);
+    $wr = odmWriteSettings($s);
+    if (!$wr['ok']) {
+        echo json_encode(['success' => false, 'error' => $wr['err']]);
         exit;
     }
     echo json_encode(['success' => true]);

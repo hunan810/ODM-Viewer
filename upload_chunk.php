@@ -82,8 +82,9 @@ if (!move_uploaded_file($chunk['tmp_name'], $partPath)) {
 }
 
 // ===== 本文件分片是否到齐？到齐则合并 =====
+// 注：glob 是 shell 风格通配（不是正则），不要用 preg_quote —— 它的 . 会被加反斜杠导致永远找不到
 $merged = false;
-$parts = glob($tmpDir . '/' . preg_quote(rawurlencode($fileName), '/') . '.part*');
+$parts = glob($tmpDir . '/' . rawurlencode($fileName) . '.part*');
 if (is_array($parts) && count($parts) >= $total) {
     try {
         mergeFile($tmpDir, $fileName, $total, $projDir);

@@ -165,7 +165,7 @@
     flex-shrink: 0;        /* 不被左右工具组挤压，避免文字被截断 */
     min-width: 0;
   }
-  /* 品牌 LOGO：在「系统设置」上传后显示；未上传时自动隐藏（开源版无内置 LOGO） */
+  /* 品牌 LOGO（固德新能源）：源图 1050×315 ≈ 3.33:1，按 28px 高显示约 93px 宽 */
   .brand-logo {
     height: 28px; width: auto; display: block;
     background: #fff;     /* PNG 透明背景，叠加深色顶栏前先垫白底，避免白边白字淹没 */
@@ -454,7 +454,7 @@
   #uploadPwdInput:focus { outline: none; border-color: #1e88e5; }
   #coverFileInput { padding: 7px 10px; color: #cfd4dc; }
   .cover-preview { margin: 6px 0 10px; padding: 8px; background: #1b1f25; border: 1px solid #353c46; border-radius: 6px; }
-  .cover-preview-img { display: block; width: 100%; max-width: 360px; aspect-ratio: 8/5; object-fit: cover; border-radius: 4px; background: #000; }
+  .cover-preview-img { display: block; width: 100%; max-width: 360px; max-height: 180px; aspect-ratio: 8/5; object-fit: contain; border-radius: 4px; background: #000; }
   .cover-preview-meta { margin-top: 6px; font-size: 12px; color: #8a909a; }
   .pwd-hint { font-size: 12px; color: #8a909a; margin: 2px 0 4px; min-height: 16px; }
   .pwd-hint.ok  { color: #43a047; }
@@ -951,7 +951,7 @@
 <!-- ============== 首页：大图项目列表 ============== -->
 <div class="home-page" id="homePage">
   <div class="home-topbar">
-    <div class="brand"><img class="brand-logo brand-logo-pc" src="LOGO.png" alt=""><img class="brand-logo brand-logo-mobile" src="LOGO-home-mobile.png" alt=""><span class="brand-text"></span></div>
+    <div class="brand"><img class="brand-logo brand-logo-pc" src="LOGO.png" alt="固德新能源"><img class="brand-logo brand-logo-mobile" src="LOGO-home-mobile.png" alt="固德新能源"><span class="brand-text"></span></div>
     <div class="home-topbar-right">
       <button class="btn btn-accent" id="btnHomeUpload" title="上传新项目到服务器 files 文件夹" style="display:none">
         <span>⬆️</span><span>上传项目</span>
@@ -986,7 +986,7 @@
   <button class="btn" id="btnBackHome" title="返回首页（项目列表）">
     <span>←</span><span class="back-home-full">返回首页</span><span class="back-home-short">首页</span>
   </button>
-  <div class="brand"><img class="brand-logo" src="LOGO.png" alt=""><span class="brand-text"></span></div>
+  <div class="brand"><img class="brand-logo" src="LOGO.png" alt="固德新能源"><span class="brand-text"></span></div>
   <div class="top-project-name empty" id="topProjectName" title="">未选择项目</div>
   <div class="toolbar toolbar-right">
     <!-- 查看页「上传项目」按钮已移除：上传入口统一收归首页，且仅在输入密码进入管理模式后可见 -->
