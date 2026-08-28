@@ -6412,9 +6412,7 @@ function loadProjectFile(proj) {
   if (isMultiObj) {
     // 优先用服务器侧已合并的 GLB（首次拼接后会自动生成 merged.glb，之后所有人秒开）
     const mergedUrl = base + 'merged.glb';
-    showLoading(true, '正在加载合并模型...', 100);
-    fetch(mergedUrl)
-      .then(r => { if (!r.ok) throw new Error('no-merged'); return r.arrayBuffer(); })
+    fetchModelBuffer(mergedUrl, '正在加载合并模型')
       .then(buf => {
         loadModelBuffer(buf, 'glb', base, proj);   // 单文件快路径（GLB 二进制解析比 OBJ 文本快数倍）
       })
@@ -6428,33 +6426,49 @@ function loadProjectFile(proj) {
   const ext = main.split('.').pop().toLowerCase();
   const url = base + encodeURIComponent(main);
   const projName = proj.name || main;
-  showLoading(true, '正在加载：' + projName, 0);   // 从 0 开始，跟踪下载字节
-  fetch(url)
-    .then(res => {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      // 跟踪已读字节，让加载大模型时圆中间能看到 0→95 的真实进度
-      const total = parseInt(res.headers.get('content-length') || '0', 10);
-      if (!res.body || !total) return res.arrayBuffer();   // 拿不到长度 → 不跟踪，原路一次性下完
-      const reader = res.body.getReader();
-      const chunks = [];
-      let loaded = 0;
-      const pump = () => reader.read().then(({ done, value }) => {
-        if (done) {
-          showLoading(true, '正在加载：' + projName, 95);  // 下载完成，交给解析
-          return new Blob(chunks).arrayBuffer();
-        }
-        chunks.push(value);
-        loaded += value.byteLength;
-        const pct = Math.min(94, Math.round((loaded / total) * 95));
-        showLoading(true, '正在加载：' + projName, pct);
-        return pump();
-      });
-      return pump();
-    })
+  fetchModelBuffer(url, '正在加载：' + projName)
     .then(buf => {
       loadModelBuffer(buf, ext, base, proj);
     })
     .catch(() => loadProjectFileViaPicker(projName));
+}
+
+/**
+ * 带进度反馈的模型下载（单模型 / merged.glb 共用）。
+ * - 服务器返回 Content-Length（未被 gzip 压缩的文件，如 glb）→ 圆环显示 0~95 的真实百分比；
+ * - 拿不到总长度（gzip 压缩响应为 chunked 传输，无 Content-Length）→
+ *   圆环数字清空，标题实时显示「已下载 X.X MB」——保证数字一直在动，不再卡 0。
+ */
+function fetchModelBuffer(url, label) {
+  showLoading(true, label, 0);   // 先弹出加载框，避免请求慢时界面无反应
+  return fetch(url).then(res => {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res.body) return res.arrayBuffer();
+    const total = parseInt(res.headers.get('content-length') || '0', 10);
+    const reader = res.body.getReader();
+    const chunks = [];
+    let loaded = 0;
+    let lastUi = 0;
+    const pump = () => reader.read().then(({ done, value }) => {
+      if (done) {
+        showLoading(true, label, total ? 95 : null);   // 下载完成，交给解析
+        return new Blob(chunks).arrayBuffer();
+      }
+      chunks.push(value);
+      loaded += value.byteLength;
+      const now = performance.now();
+      if (now - lastUi >= 100) {   // 每 100ms 刷一次界面，避免大文件高频刷 DOM
+        lastUi = now;
+        if (total) {
+          showLoading(true, label, Math.min(94, Math.round((loaded / total) * 95)));
+        } else {
+          showLoading(true, label + '（已下载 ' + (loaded / 1048576).toFixed(1) + ' MB）', null);
+        }
+      }
+      return pump();
+    });
+    return pump();
+  });
 }
 
 /**
