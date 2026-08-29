@@ -435,6 +435,7 @@
   .dialog {
     background: #1c2026; border: 1px solid #2a2f37; border-radius: 6px;
     padding: 20px; width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); overflow-y: auto;
   }
   .dialog h3 { margin-bottom: 12px; font-size: 15px; color: #fff; }
   .dialog-hint { color: #8a909a; font-size: 12px; margin-bottom: 12px; line-height: 1.6; }
@@ -453,8 +454,11 @@
   #uploadPwdInput { width: 100%; box-sizing: border-box; padding: 8px 10px; background: #1b1f25; border: 1px solid #353c46; border-radius: 6px; color: #cfd4dc; font-size: 13px; margin-bottom: 2px; }
   #uploadPwdInput:focus { outline: none; border-color: #1e88e5; }
   #coverFileInput { padding: 7px 10px; color: #cfd4dc; }
-  .cover-preview { margin: 6px 0 10px; padding: 8px; background: #1b1f25; border: 1px solid #353c46; border-radius: 6px; }
+  .cover-preview { margin: 6px 0 10px; padding: 8px; background: #1b1f25; border: 1px solid #353c46; border-radius: 6px; display: flex; align-items: flex-start; }
   .cover-preview-img { display: block; width: 100%; max-width: 360px; max-height: 180px; aspect-ratio: 8/5; object-fit: contain; border-radius: 4px; background: #000; }
+  /* 系统设置 LOGO 预览——与首页实际显示 1:1（PC 28px / 移动端 36×36）。用 !important 完全打断 .cover-preview-img 的宽高继承，杜绝被宽屏预览挤掉保存按钮 */
+  #setLogoPCPreviewImg { width: auto !important; max-width: 360px !important; height: 28px !important; max-height: 28px !important; min-height: 28px !important; aspect-ratio: auto !important; object-fit: contain; background: #fff; border-radius: 3px; padding: 1px 2px; flex-shrink: 0; }
+  #setLogoMobilePreviewImg { width: 36px !important; max-width: 36px !important; height: 36px !important; max-height: 36px !important; min-height: 36px !important; aspect-ratio: auto !important; object-fit: contain; background: transparent; border-radius: 0; padding: 0; flex-shrink: 0; }
   .cover-preview-meta { margin-top: 6px; font-size: 12px; color: #8a909a; }
   .pwd-hint { font-size: 12px; color: #8a909a; margin: 2px 0 4px; min-height: 16px; }
   .pwd-hint.ok  { color: #43a047; }
@@ -1182,7 +1186,7 @@
           <input type="range" id="pxExposure" min="0.5" max="2.0" step="0.05" value="1.0">
         </div>
         <div class="param-row">
-          <div class="param-label">各向异性过滤 <span class="param-val" id="valAniso">0.00</span></div>
+          <div class="param-label" title="斜视角的地面/墙面贴图更清晰。需依赖 mipmap，拉高时自动开启">各向异性过滤 <span class="param-val" id="valAniso">0.00</span></div>
           <input type="range" id="pxAniso" min="0" max="1" step="0.05" value="0">
         </div>
         <div class="param-row">
@@ -1190,8 +1194,8 @@
           <input type="range" id="pxAmbient" min="0" max="1.5" step="0.05" value="0.7">
         </div>
         <div class="param-row">
-          <div class="param-label">半球光强度 <span class="param-val" id="valHemi">0.00</span></div>
-          <input type="range" id="pxHemi" min="0" max="1.5" step="0.05" value="0">
+          <div class="param-label">半球光强度 <span class="param-val" id="valHemi">1.00</span></div>
+          <input type="range" id="pxHemi" min="0" max="1.5" step="0.05" value="1">
         </div>
         <div class="param-row">
           <div class="param-label">主平行光强度 <span class="param-val" id="valDir">1.00</span></div>
@@ -1893,7 +1897,7 @@ const DEFAULT_RENDER_PARAMS = {
   aniso: 0.0,           // 各向异性过滤强度（占显卡上限比例）：0 ~ 1（默认关，接近原始）
   envOn: true,          // 环境光照总开关
   ambient: 0.7,         // 环境光强度：0 ~ 1.5
-  hemi: 0.0,            // 半球光强度：0 ~ 1.5（默认关；想通透可调到 0.4~0.6）
+  hemi: 1.0,            // 半球光强度：0 ~ 1.5（默认 1，天空蓝+地面灰立体环境光）
   dir: 1.0,             // 主平行光强度：0 ~ 2.0
   dir2: 0.3,            // 补光强度：0 ~ 1.0
   texBright: 1.0,       // 纹理亮度（材质色彩倍率）：0.5 ~ 1.5
@@ -2187,7 +2191,8 @@ function applyTextureParams() {
   if (!renderer || !currentModel) return;
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
   const anisoVal = Math.max(0, renderParams.aniso) * maxAniso;
-  const useMip = !!renderParams.mipmap;
+  // 各向异性过滤必须依赖 mipmap 才有效果：只要 aniso>0 就强制开 mipmap（否则滑了也看不出变化）
+  const useMip = !!renderParams.mipmap || renderParams.aniso > 0;
   const wantFilter = useMip ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter;
   currentModel.traverse((o) => {
     if (!o.isMesh || !o.material) return;
@@ -2284,6 +2289,13 @@ function bindParamDialog() {
       renderParams[key] = v;
       const ve = document.getElementById(valId);
       if (ve) ve.textContent = v.toFixed(2);
+      // 各向异性过滤依赖 mipmap：拉高时自动开启 mipmap 开关（GLB 默认关以防接缝，导致 aniso 看似无效）
+      if (key === 'aniso' && v > 0 && !renderParams.mipmap) {
+        renderParams.mipmap = true;
+        const mm = document.getElementById('pxMipmap');
+        if (mm) mm.checked = true;
+        setStatus('ℹ️ 各向异性过滤已自动开启 mipmap（远景更清晰；若贴图出现接缝可调回各向异性为 0）');
+      }
       applyRenderLive();                     // 灯光/曝光/亮度 实时生效，绝不卡
       if (affectsTex) scheduleTexApply(160); // 各向异性：合并到 ~160ms 才上传一次纹理
       scheduleSave();
@@ -2676,6 +2688,26 @@ function init() {
   document.getElementById('managePwdInput').addEventListener('input', checkManagePwd);
   document.getElementById('btnManageOk').addEventListener('click', confirmManagePwd);
   document.getElementById('btnManageCancel').addEventListener('click', closeManagePwdDialog);
+  // ===== 对话框内按 Enter 直接触发确认按钮（小代码，通用逻辑） =====
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const okMap = {
+      uploadDialog:   'btnUploadOk',
+      editDialog:     'btnEditOk',
+      settingsDialog: 'btnSettingsOk',
+      managePwdDialog:'btnManageOk'
+    };
+    for (const [dlgId, btnId] of Object.entries(okMap)) {
+      const dlg = document.getElementById(dlgId);
+      if (!dlg || !dlg.classList.contains('active')) continue;   // 只管当前打开的对话框
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'textarea' || tag === 'select') return;        // 多行文本/下拉框里 Enter 保留默认行为
+      if (tag === 'button') return;                              // 焦点已在按钮上，交给浏览器默认触发，避免双重点击
+      const btn = document.getElementById(btnId);
+      if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+      return;
+    }
+  });
   // 上传项目：点击按钮打开上传对话框（含名称/备注/文件多选）
   // 前端不保存密码明文，仅判断"非空即可点"；密码对错交由后端 upload.php 用 sha256 哈希校验
   function checkUploadPwd() {
@@ -7130,7 +7162,19 @@ function onSettingsLogoSelected(e, which) {
   const meta    = document.getElementById(which === 'pc' ? 'setLogoPCPreviewMeta' : 'setLogoMobilePreviewMeta');
   if (preview) preview.style.display = 'block';
   if (meta) meta.textContent = (file.size / 1024).toFixed(0) + ' KB · ' + file.name;
-  if (img) { const url = URL.createObjectURL(file); img.onload = () => URL.revokeObjectURL(url); img.src = url; }
+  if (img) {
+    const url = URL.createObjectURL(file);
+    img.onload = () => URL.revokeObjectURL(url);
+    // 兜底：JS 层强制按"与首页 LOGO 同尺寸"展示，避免 CSS 被任何东西干扰
+    if (which === 'pc') {
+      img.style.width = 'auto'; img.style.maxWidth = '360px';
+      img.style.height = '28px'; img.style.maxHeight = '28px'; img.style.minHeight = '28px';
+    } else {
+      img.style.width = '36px'; img.style.maxWidth = '36px';
+      img.style.height = '36px'; img.style.maxHeight = '36px'; img.style.minHeight = '36px';
+    }
+    img.src = url;
+  }
 }
 
 /** 保存系统设置 */
