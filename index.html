@@ -149,6 +149,45 @@
   }
   .home-footer .status-info { color: #8a909a; }
 
+  /* ============== 首页风格切换（白 / 黑）：纯 CSS 覆盖，不改任何逻辑 ============== */
+  .theme-toggle { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; vertical-align: middle; }
+  .theme-dot {
+    width: 16px; height: 16px; border-radius: 4px; cursor: pointer; padding: 0;
+    border: 1px solid #4a5261; transition: box-shadow .15s, transform .1s;
+  }
+  .theme-dot:active { transform: scale(0.92); }
+  .theme-dot-light { background: #f5f6f8; }
+  .theme-dot-dark  { background: #14171c; }
+  .theme-dot.active { border-color: #1f9d55; box-shadow: 0 0 0 2px #1f9d55; }
+
+  /* 白色风格：只作用于首页卡片页（.home-page），模型查看页保持原深色风格不变 */
+  .home-page.theme-light { background: #f5f6f8; }
+  .home-page.theme-light .home-topbar {
+    background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 100%);
+    border-bottom: 1px solid #e2e6ec; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .home-page.theme-light .brand { color: #1f2937; }
+  .home-page.theme-light .btn { background: #ffffff; color: #374151; border-color: #d5dae2; }
+  .home-page.theme-light .btn:hover { background: #eef1f5; color: #111827; border-color: #c3cbd6; }
+  .home-page.theme-light .btn-accent,
+  .home-page.theme-light .btn-accent:hover { background: #1f9d55; color: #fff; border-color: #1f9d55; }
+  .home-page.theme-light .home-card { background: #ffffff; border-color: #e3e7ee; }
+  .home-page.theme-light .home-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+  .home-page.theme-light .home-card-name { color: #1f2937; }
+  .home-page.theme-light .home-card-remark { color: #6b7280; }
+  .home-page.theme-light .home-card-cover { background: #e9ecf1; }
+  .home-page.theme-light .home-card-upload {
+    background: repeating-linear-gradient(135deg, #ffffff, #ffffff 8px, #f3f5f8 8px, #f3f5f8 16px);
+    border-color: #c3cbd6;
+  }
+  .home-page.theme-light .home-card-upload-inner { color: #6b7280; }
+  .home-page.theme-light .home-empty { color: #6b7280; }
+  .home-page.theme-light .home-empty-title { color: #374151; }
+  .home-page.theme-light .home-footer { background: #ffffff; border-top: 1px solid #e2e6ec; color: #6b7280; }
+  .home-page.theme-light .home-footer .status-info { color: #6b7280; }
+  .home-page.theme-light .theme-dot { border-color: #c3cbd6; }          /* 白底下色块加灰边可见 */
+  .home-page.theme-light .theme-dot.active { border-color: #1f9d55; }
+
   /* 模型查看页容器：fill 整屏，内部布局沿用原 top-bar + canvas 绝对定位 */
   .viewer-page { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; }
 
@@ -966,6 +1005,10 @@
       <button class="btn" id="btnHomeManage" title="管理项目：删除 / 编辑（需密码）">
         <span>🗂️</span><span>管理项目</span>
       </button>
+      <div class="theme-toggle" id="themeToggle" title="界面风格：白色 / 黑色">
+        <button class="theme-dot theme-dot-light" id="btnThemeLight" title="白色风格" aria-label="白色风格"></button>
+        <button class="theme-dot theme-dot-dark" id="btnThemeDark" title="黑色风格（默认）" aria-label="黑色风格"></button>
+      </div>
     </div>
   </div>
   <div class="home-content">
@@ -2736,6 +2779,22 @@ function init() {
   document.getElementById('setLogoPCInput').addEventListener('change', (e) => onSettingsLogoSelected(e, 'pc'));
   document.getElementById('setLogoMobileInput').addEventListener('change', (e) => onSettingsLogoSelected(e, 'mobile'));
   applySiteSettings();   // 加载时套用服务端站点名 / LOGO
+  // ===== 首页风格切换（白/黑）：只切 theme-light 类 + localStorage 记忆，不改任何代码逻辑 =====
+  (function initThemeToggle(){
+    const homePage = document.getElementById('homePage');
+    const btnLight = document.getElementById('btnThemeLight');
+    const btnDark  = document.getElementById('btnThemeDark');
+    if (!homePage || !btnLight || !btnDark) return;
+    const KEY = 'odm_home_theme';
+    function applyTheme(mode){
+      homePage.classList.toggle('theme-light', mode === 'light');
+      btnLight.classList.toggle('active', mode === 'light');
+      btnDark.classList.toggle('active', mode !== 'light');
+    }
+    btnLight.addEventListener('click', () => { localStorage.setItem(KEY, 'light'); applyTheme('light'); });
+    btnDark .addEventListener('click', () => { localStorage.setItem(KEY, 'dark');  applyTheme('dark');  });
+    applyTheme(localStorage.getItem(KEY) === 'light' ? 'light' : 'dark');   // 默认黑（原风格）
+  })();
   document.getElementById('btnUploadCancel').addEventListener('click', closeUploadDialog);
   document.getElementById('uploadPwdInput').addEventListener('input', checkUploadPwd);
   document.getElementById('coverFileInput').addEventListener('change', onCoverSelected);
