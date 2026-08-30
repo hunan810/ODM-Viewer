@@ -110,6 +110,33 @@
   /* 首页管理模式：卡片中间浮出「编辑 / 删除」按钮 */
   .home-card.home-manage { position: relative; cursor: default; }
   .home-card.home-manage:hover { transform: none; box-shadow: 0 6px 18px rgba(0,0,0,0.45); border-color: #2a2f37; }
+  /* 管理模式拖拽排序：卡片可抓取；正在拖的卡片半透明+虚线框 */
+  .home-card.home-manage { cursor: grab; touch-action: none; }
+  .home-card.home-manage .home-card-btn { cursor: pointer; touch-action: auto; }
+  /* 被拖起的卡片：脱离文档流跟随指针（图标式拖动），微放大 + 深阴影 + 轻微倾斜 */
+  .home-card-float {
+    position: fixed !important;
+    left: 0; top: 0;
+    z-index: 999;
+    margin: 0;
+    pointer-events: none;
+    cursor: grabbing !important;
+    box-shadow: 0 24px 48px rgba(0,0,0,.55), 0 4px 12px rgba(0,0,0,.35);
+    opacity: .96;
+    transition: box-shadow .15s ease;
+    will-change: transform;
+  }
+  /* 拖动中的落位占位框：虚线绿框标记"松手会放这里" */
+  .home-card-placeholder {
+    border: 2px dashed #10b981;
+    border-radius: 8px;
+    background: rgba(16,185,129,.08);
+    pointer-events: none;
+    animation: homePhPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes homePhPulse { 0%,100% { background: rgba(16,185,129,.06); } 50% { background: rgba(16,185,129,.14); } }
+  body.home-dragging { user-select: none; -webkit-user-select: none; }
+  .home-card img { -webkit-user-drag: none; user-drag: none; }   /* 防封面图触发浏览器原生拖拽干扰 */
   .home-card-actions {
     position: absolute; inset: 0;
     display: none;
@@ -1928,6 +1955,8 @@ let homeManageMode = false;       // 首页管理模式：卡片浮出「编辑 
 let currentSiteName = '';           // 站点名称（applySiteSettings 从服务端套用；HTML 不再写死固定标题）
 let _occlusionTimer = null;       // 穿模检测防抖定时器（OrbitControls.change → scheduleOcclusionRefresh 同步访问）
 let _occlusionThrottle = 0;       // 穿模检测节流时间戳（refreshMeasureLineVisibility 内 200ms 后访问）
+let homeOrderKeys = null;         // 首页卡片自定义排序（key 数组；null = 从未保存过，保持默认时间倒序）
+let homeOrderLoaded = false;      // home_order.json 是否已拉取过（会话内缓存，拖动保存后直接更新内存）
 
 // ---- 画面调参（可实时调节的渲染参数，持久化到 localStorage）----
 // 这些变量被 init() 内灯光初始化、onModelLoaded() 加载模型时同步引用，必须在 init() 之前声明
@@ -5902,13 +5931,14 @@ function updateCompass() {
 /** 渲染首页大图卡片网格（每行 5 个），先拉取最新 manifest 再渲染 */
 async function renderHomeGrid() {
   await syncProjectNames();
+  await loadHomeOrder();   // 拉取自定义排序（无则保持默认）
   const grid = document.getElementById('homeGrid');
   const empty = document.getElementById('homeEmpty');
   const statusInfo = document.getElementById('homeStatusInfo');
   if (!grid || !empty) return;
 
-  // 按 uploadedAt 倒序：最新的在最上；老项目无上传时间则兜底排到最后
-  const list = [...projects].sort((a, b) => {
+  // 默认按 uploadedAt 倒序：最新的在最上；老项目无上传时间则兜底排到最后
+  let list = [...projects].sort((a, b) => {
     const ta = a.uploadedAt || '';
     const tb = b.uploadedAt || '';
     if (ta && tb) return tb.localeCompare(ta);
@@ -5916,6 +5946,17 @@ async function renderHomeGrid() {
     if (tb) return 1;
     return a.name.localeCompare(b.name, 'zh-Hans-CN');
   });
+
+  // 自定义排序（管理模式拖动过才有）：拖过的项目按保存顺序排在下方；
+  // 没拖过的新上传项目仍按时间倒序排在最前（保持「新项目在最上面」的习惯）
+  if (Array.isArray(homeOrderKeys) && homeOrderKeys.length > 0) {
+    const rank = new Map(homeOrderKeys.map((k, i) => [k, i]));
+    const keyOf = (p) => p.folder || ('_flat_' + p.main);
+    const ordered = [], fresh = [];
+    for (const p of list) (rank.has(keyOf(p)) ? ordered : fresh).push(p);
+    ordered.sort((a, b) => rank.get(keyOf(a)) - rank.get(keyOf(b)));
+    list = fresh.concat(ordered);
+  }
 
   grid.innerHTML = '';
   if (list.length === 0) {
@@ -5931,6 +5972,7 @@ async function renderHomeGrid() {
   for (const proj of list) {
     const card = document.createElement('div');
     card.className = 'home-card';
+    card.dataset.key = proj.folder || ('_flat_' + proj.main);   // 排序用的稳定 key（拖拽保存顺序）
     card.title = proj.name + (proj.remark ? '\n' + proj.remark : '');
     // 封面图：有 cover 字段取服务器资源；占位图用内联 SVG（无需网络）
     const coverUrl = buildCoverUrl(proj);
@@ -5987,6 +6029,145 @@ async function renderHomeGrid() {
   grid.appendChild(uploadCard);
   // 仅首页管理模式（输入密码后）才显示「上传项目」占位卡；普通浏览隐藏
   uploadCard.style.display = homeManageMode ? '' : 'none';
+
+  // 管理模式下启用拖拽排序（document 级监听只绑一次，卡片级 pointerdown 每次渲染重绑）
+  if (homeManageMode) enableHomeCardDrag(grid);
+}
+
+/** 拉取服务器保存的首页卡片自定义排序（files/home_order.json）；会话内只拉一次 */
+async function loadHomeOrder() {
+  if (homeOrderLoaded) return;
+  homeOrderLoaded = true;   // 先置位：即使拉取失败也不再反复请求（保持默认时间倒序即可）
+  try {
+    const res = await fetch('files/home_order.json', { cache: 'no-store' });
+    if (!res.ok) return;    // 404 = 从未拖动保存过，正常情况
+    const json = await res.json();
+    if (json && Array.isArray(json.order)) homeOrderKeys = json.order;
+  } catch (e) { /* 本地 file:// 或网络异常时忽略，保持默认排序 */ }
+}
+
+/** 管理模式下给卡片挂拖拽排序（鼠标 + 触屏通用的 Pointer 方案）
+ *  图标式手感：卡片被"拿起"跟随指针浮动（微放大+深阴影），其他卡片以 FLIP 动画平滑让位，
+ *  虚线占位框实时指示落点，松手后卡片从手上位置飞回落位。 */
+function enableHomeCardDrag(grid) {
+  if (!grid.__dragWired) {
+    grid.__dragWired = true;
+    const st = grid.__dragState = { card: null, pid: null, startX: 0, startY: 0, dragging: false, ph: null, offX: 0, offY: 0, curX: 0, curY: 0 };
+
+    /** FLIP：先记录各卡片当前位置（First），执行 DOM 变更（Invert/Play 在内部完成），
+     *  位置变化的卡片会从旧位置平滑滑到新位置（.25s），而不是瞬间跳变 */
+    const flipCards = (mutate) => {
+      const cards = [...grid.querySelectorAll('.home-card:not(.home-card-float):not(.home-card-placeholder)')];
+      const first = new Map(cards.map(c => [c, c.getBoundingClientRect()]));
+      mutate();
+      for (const c of cards) {
+        const f = first.get(c), l = c.getBoundingClientRect();
+        const dx = f.left - l.left, dy = f.top - l.top;
+        if (!dx && !dy) continue;
+        if (c.__flipT) clearTimeout(c.__flipT);   // 连续让位时取消上一次的兜底清理，避免误清新动画
+        c.style.transition = 'none';
+        c.style.transform = `translate(${dx}px, ${dy}px)`;
+        c.getBoundingClientRect();   // 强制回流，确保起始帧生效
+        c.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)';
+        c.style.transform = '';
+        const clear = () => { c.__flipT = null; c.style.transition = ''; c.style.transform = ''; };
+        c.addEventListener('transitionend', clear, { once: true });
+        c.__flipT = setTimeout(clear, 320);       // 兜底清理（transitionend 偶发不触发时）
+      }
+    };
+
+    const onMove = (e) => {
+      if (!st.card || e.pointerId !== st.pid) return;
+      st.curX = e.clientX; st.curY = e.clientY;
+      if (!st.dragging) {
+        if (Math.hypot(e.clientX - st.startX, e.clientY - st.startY) < 6) return;  // 6px 位移才算拖动，避免误伤点击
+        st.dragging = true;
+        // —— 拿起卡片：脱离文档流转为 fixed 浮动，原位插入等高占位框 ——
+        const r = st.card.getBoundingClientRect();
+        st.offX = st.startX - r.left; st.offY = st.startY - r.top;
+        st.ph = document.createElement('div');
+        st.ph.className = 'home-card home-card-placeholder';
+        st.ph.style.height = r.height + 'px';
+        grid.insertBefore(st.ph, st.card);
+        st.card.classList.add('home-card-float');
+        st.card.style.width = r.width + 'px';
+        st.card.style.transform = `translate(${e.clientX - st.offX}px, ${e.clientY - st.offY}px) scale(1.05) rotate(1.2deg)`;
+        document.body.classList.add('home-dragging');
+        try { st.card.setPointerCapture(st.pid); } catch (_) {}
+        setStatus('拖到想要的位置后松手即可');
+      }
+      e.preventDefault();
+      // —— 卡片跟随指针 ——
+      st.card.style.transform = `translate(${e.clientX - st.offX}px, ${e.clientY - st.offY}px) scale(1.05) rotate(1.2deg)`;
+      // —— 计算落点：指针下方的卡片（浮动卡与占位框都 pointer-events:none，不会挡住探测）——
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if (!el) return;
+      const target = el.closest('.home-card');
+      if (!target || target === st.ph || !grid.contains(target)) return;
+      const upload = grid.querySelector('.home-card-upload');
+      if (target === upload) {
+        flipCards(() => grid.insertBefore(st.ph, upload));          // 拖到「上传项目」卡上 → 占位框放最后
+        return;
+      }
+      const r = target.getBoundingClientRect();                     // 指在目标左半边→插它前面，右半边→插它后面
+      const before = (e.clientX - r.left) / r.width < 0.5;
+      const ref = before ? target : target.nextSibling;
+      if (ref === st.ph || (ref && ref.previousElementSibling === st.ph)) return;   // 位置没变，不动
+      flipCards(() => grid.insertBefore(st.ph, ref));
+    };
+
+    const onUp = (e) => {
+      if (!st.card || e.pointerId !== st.pid) return;
+      const wasDragging = st.dragging;
+      if (wasDragging) {
+        // —— 松手：卡片从手上位置飞回占位框 ——
+        const cardRef = st.card, dropX = st.curX - st.offX, dropY = st.curY - st.offY;   // 手上时卡片的视口坐标
+        grid.insertBefore(cardRef, st.ph);
+        cardRef.classList.remove('home-card-float');
+        cardRef.style.cssText = '';
+        const l = cardRef.getBoundingClientRect();
+        const dx = dropX - l.left, dy = dropY - l.top;
+        cardRef.style.transition = 'none';
+        cardRef.style.transform = `translate(${dx}px, ${dy}px) scale(1.05)`;
+        cardRef.getBoundingClientRect();
+        cardRef.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)';
+        cardRef.style.transform = '';
+        // 兜底清理：用本地 cardRef 引用，闭包期间 DOM 已被重建/移除就跳过（防止后续 renderHomeGrid 把节点删了后还在 .style 报错）
+        setTimeout(() => { if (cardRef.isConnected) { cardRef.style.transition = ''; cardRef.style.transform = ''; } }, 320);
+        if (st.ph) st.ph.remove();
+        document.body.classList.remove('home-dragging');
+        persistHomeCardOrder(grid);   // 松手才算一次有效排序，立即保存到服务器
+      }
+      st.card = null; st.pid = null; st.dragging = false; st.ph = null;
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+  }
+  // 每张项目卡挂 pointerdown 起手监听（卡片每次渲染都是新 DOM，直接绑即可）
+  const st = grid.__dragState;
+  grid.querySelectorAll('.home-card:not(.home-card-upload)').forEach(card => {
+    card.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      st.card = card; st.pid = e.pointerId; st.startX = e.clientX; st.startY = e.clientY; st.dragging = false;
+    });
+  });
+}
+
+/** 按当前 DOM 顺序把卡片 key 数组保存到服务器（save_order.php），并同步内存缓存 */
+function persistHomeCardOrder(grid) {
+  const keys = [...grid.querySelectorAll('.home-card:not(.home-card-upload)')]
+    .map(c => c.getAttribute('data-key')).filter(Boolean);
+  if (keys.length === 0) return;
+  homeOrderKeys = keys;   // 内存同步：退出管理模式后立即按新顺序渲染
+  const fd = new FormData();
+  fd.append('pwd', managePwd || '');
+  fd.append('order', JSON.stringify(keys));
+  setStatus('正在保存卡片顺序...');
+  fetch('save_order.php', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(j => setStatus(j.success ? '✅ 卡片顺序已保存，退出管理后即按此顺序显示' : '⚠️ 顺序保存失败：' + (j.error || '未知错误')))
+    .catch(err => setStatus('⚠️ 顺序保存失败：' + err.message));
 }
 
 /** 简易 HTML 转义，避免项目名/备注里出现 <> & 时破图 */
@@ -6408,7 +6589,7 @@ function confirmManagePwd() {
           renderHomeGrid();
           const _hu = document.getElementById('btnHomeUpload'); if (_hu) _hu.style.display = '';
           const _hs = document.getElementById('btnHomeSettings'); if (_hs) _hs.style.display = '';
-          setStatus('已开启首页管理模式：点击卡片上的「编辑」或「删除」操作项目（需密码）');
+          setStatus('已开启首页管理模式：可直接拖动卡片排序（自动保存），或点卡片上的「编辑 / 删除」操作项目');
         } else {
           toggleManageMode();         // 查看页管理模式（显示删除图标）
           setStatus('已开启管理模式，可删除项目');
