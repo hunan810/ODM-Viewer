@@ -1848,6 +1848,11 @@ let croppedMeshes = [];       // 裁剪时修改过的网格（用于「显示�
 // 保存初始相机状态（用于"重置视角"）
 let savedCameraState = null;
 
+// 3D 平移定速用的中心射线缓存（updatePanSpeed 用，须先于 init(); animate(); 声明，防 TDZ）
+let _panRayT = 0;                 // 射线节流时间戳
+let _panRayDist = null;           // 缓存：视线中心到模型表面的实际距离
+const _panRayDir = new THREE.Vector3();
+
 // 测量结果计数
 let measureCounter = 0;
 
@@ -2620,10 +2625,11 @@ function init() {
   // 左键旋转、右键平移、滚轮缩放、阻尼平滑
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
+  controls.dampingFactor = 0.16;            // 0.08→0.16：原来太"沉"，拖了半天画面才慢悠悠跟上
   controls.screenSpacePanning = true;      // 平移沿屏幕平面（跟手，放大缩小幅度一致）
-  controls.minDistance = 0.05;
+  controls.minDistance = 0.01;               // 0.05→0.01：允许贴到表面 1cm 级别，配合近平面自适应可一直深放
   controls.maxDistance = 10000;
+  controls.zoomToCursor = true;              // 缩放跟随光标：向鼠标指的点位飞，而不是向悬空的注视点飞（否则放大到一定程度就放不大了）
   // 鼠标按钮映射：左键旋转、中键平移、右键不绑定任何功能
   controls.mouseButtons = {
     LEFT: THREE.MOUSE.ROTATE,
@@ -3005,9 +3011,65 @@ function setupMeasureFloater() {
   window.addEventListener('resize', positionMeasureFloater);
 }
 
+/** 平移速度自适应（3D/2D 分开策略）
+ *  3D 透视：用"视线中心射线打到模型表面的实际距离"定速（航拍模型 target 常悬在半空，
+ *           放大后按 target 距离算会把地面拖得极慢；按表面距离算 = 地面跟手 1:1），
+ *           再叠加"拖满一屏至少挪模型尺寸 2%"的保底加速（封顶 3 倍防打滑）
+ *  2D 正交：按视口高/zoom 定速（天然 1:1），仅保留 2% 保底加速，封顶 3 倍 */
+function updatePanSpeed() {
+  if (!controls || !camera) return;
+  const modelDim = savedCameraState && savedCameraState.maxDim ? savedCameraState.maxDim : 0;
+  if (!modelDim) { controls.panSpeed = 1; return; }   // 未加载模型：默认速度
+  if (camera.isPerspectiveCamera) {
+    const targetDist = camera.position.distanceTo(controls.target);
+    if (currentModel && raycaster && targetDist > 1e-6) {
+      const now = performance.now();
+      if (now - _panRayT > 100) {                    // 100ms 节流，BVH 首击单次开销可忽略
+        _panRayT = now;
+        _panRayDist = null;
+        _panRayDir.subVectors(controls.target, camera.position);
+        if (_panRayDir.lengthSq() > 1e-12) {
+          _panRayDir.normalize();
+          raycaster.set(camera.position, _panRayDir);
+          const hit = raycaster.intersectObject(currentModel, true);
+          if (hit.length && hit[0].distance > 0.01) _panRayDist = hit[0].distance;
+        }
+      }
+    } else {
+      _panRayDist = null;
+    }
+    const fovRad = (camera.fov || 50) * Math.PI / 360;
+    if (_panRayDist) {
+      // 基准：与画面中心的模型表面 1:1 跟手（比值换算），再叠保底加速
+      const screenHit = 2 * _panRayDist * Math.tan(fovRad);
+      const boost = Math.min(3, Math.max(1, (modelDim * 0.02) / Math.max(screenHit, 1e-9)));
+      controls.panSpeed = Math.min(1e4, (_panRayDist / targetDist) * boost);
+    } else {
+      // 没打到模型（看天空等）：退回按 target 距离的老逻辑
+      const screenH = 2 * targetDist * Math.tan(fovRad);
+      controls.panSpeed = Math.min(3, Math.max(1, (modelDim * 0.02) / Math.max(screenH, 1e-9)));
+    }
+  } else {
+    const screenH = (camera.top - camera.bottom) / camera.zoom;   // 2D 正交按视口高/zoom
+    controls.panSpeed = Math.min(3, Math.max(1, (modelDim * 0.02) / Math.max(screenH, 1e-9)));
+  }
+}
+
 function animate() {
   requestAnimationFrame(animate);
+  updatePanSpeed();
   controls.update();
+  // 深度缩放自适应近平面（仅 3D 透视）：放大越深，近平面跟着收紧（≈相机到注视点距离的 1/1000），
+  // 避免"放到很深时眼前的屋顶先被裁掉消失"——这是 3D 不能一直放大的第二道关卡。
+  // 变化超过 20% 才重建投影矩阵，避免每帧都算。
+  if (camera && camera.isPerspectiveCamera && controls) {
+    const dNear = camera.position.distanceTo(controls.target);
+    const wantNear = Math.max(0.002, dNear * 0.001);
+    if (Math.abs(wantNear - camera.near) / camera.near > 0.2) {
+      camera.near = wantNear;
+      camera.updateProjectionMatrix();
+    }
+  }
   // 打点图钉锁定屏幕像素大小（相机缩放/旋转/窗口缩放均恒定）
   if (typeof savedPoints !== 'undefined') {
     for (let i = 0; i < savedPoints.length; i++) {
@@ -5438,6 +5500,7 @@ function setViewMode(mode) {
     controls.panSpeed = 1.0;                        // 2D 视图平移速度保持默认
     controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.PAN, RIGHT: null };
     controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_PAN };
+    controls.zoomToCursor = false;               // 2D 缩放行为保持原样（按屏幕中心缩放）
   } else {
     // 3D 透视：保持当前到 target 的距离 dist，方向取固定斜俯视角；
     // 用归一化方向 * dist 确保 perspCam 到 target 实际距离 == dist，
@@ -5460,6 +5523,7 @@ function setViewMode(mode) {
     controls.panSpeed = 0.85;
     controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN, RIGHT: null };
     controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+    controls.zoomToCursor = true;                // 3D：缩放向光标指的点位飞，可一路贴地放大到细节
   }
   controls.update();
   updateViewModeButton();
