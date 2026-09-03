@@ -198,7 +198,33 @@ function cleanState($st) {
             $points[] = ['id' => $id, 'name' => $name, 'position' => $pos, 'normal' => $nrm];
         }
     }
-    return ['crop' => $crop, 'measurements' => $measurements, 'points' => $points, 'camera' => $camera];
+    // 地形压平：每个 op = { poly:[[x,y,z]...模型局部坐标], base:'min'|'custom', h:number }
+    $flatten = [];
+    if (isset($st['flatten']) && is_array($st['flatten'])) {
+        foreach ($st['flatten'] as $op) {
+            if (!is_array($op) || !isset($op['poly']) || !is_array($op['poly'])) continue;
+            $poly = [];
+            foreach ($op['poly'] as $pt) {
+                if (!is_array($pt) || count($pt) < 3) continue;
+                $x = is_numeric($pt[0]) ? floatval($pt[0]) : null;
+                $y = is_numeric($pt[1]) ? floatval($pt[1]) : null;
+                $z = is_numeric($pt[2]) ? floatval($pt[2]) : null;
+                if ($x === null || $y === null || $z === null) continue;
+                $poly[] = [round($x, 4), round($y, 4), round($z, 4)];
+            }
+            if (count($poly) < 3) continue;
+            $base = (isset($op['base']) && $op['base'] === 'custom') ? 'custom' : 'min';
+            $h = (isset($op['h']) && is_numeric($op['h'])) ? floatval($op['h']) : 0;
+            $blur = (isset($op['blur']) && is_numeric($op['blur'])) ? floatval($op['blur']) : 0.5;
+            $opacity = (isset($op['opacity']) && is_numeric($op['opacity'])) ? floatval($op['opacity']) : 0.85;
+            $mode = (isset($op['mode']) && $op['mode'] === 'blur') ? 'blur' : 'color';
+            $color = (isset($op['color']) && preg_match('/^#[0-9a-fA-F]{6}$/', $op['color'])) ? $op['color'] : '#ffcc00';
+            $flatten[] = ['poly' => $poly, 'base' => $base, 'h' => round($h, 4), 'mode' => $mode, 'color' => $color, 'blur' => round($blur, 4), 'opacity' => round($opacity, 4)];
+        }
+    }
+    $out = ['crop' => $crop, 'measurements' => $measurements, 'points' => $points, 'camera' => $camera];
+    if ($flatten) $out['flatten'] = $flatten;
+    return $out;
 }
 
 $clean = cleanState($state);

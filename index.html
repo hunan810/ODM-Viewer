@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>加载中…</title>
+<title>ODM Viewer</title>
 <link rel="icon" type="image/png" href="LOGO-home-mobile.png">
 <link rel="apple-touch-icon" href="LOGO-home-mobile.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -602,6 +602,100 @@
   }
   .param-col .param-sec:first-child { margin-top: 0; }
   .param-adv { display: none; }
+
+  /* ============== 叠加模型浮窗 ============== */
+  #overlayDialog.dialog-overlay {
+    background: transparent;            /* 不遮挡背后模型 */
+    align-items: flex-start;
+    justify-content: flex-start;        /* 靠左侧，避开右边的画面调参浮窗 */
+    padding: 64px 18px 18px;
+    pointer-events: none;               /* 点击穿透到画布，仅面板本身可交互 */
+    z-index: 9997;
+  }
+  #overlayDialog .dialog.ov-panel {
+    pointer-events: auto;
+    width: 332px; max-width: calc(100vw - 24px); max-height: calc(100vh - 90px);
+    padding: 0;
+    background: rgba(28,32,38,0.96);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #overlayDialog .param-content { overflow-y: auto; }
+  .ov-upload-btn { width: 100%; margin-bottom: 10px; padding: 9px 0; }
+  .ov-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+  .ov-item {
+    display: flex; align-items: center; gap: 8px; padding: 7px 9px;
+    background: #1b1f25; border: 1px solid #2a2f37; border-radius: 6px; cursor: pointer;
+  }
+  .ov-item:hover { border-color: #3a414c; }
+  .ov-item.active { border-color: #10b981; box-shadow: 0 0 0 1px rgba(16,185,129,0.35); }
+  .ov-item.off { opacity: 0.55; }
+  .ov-item .ov-name { flex: 1; min-width: 0; }
+  .ov-item .ov-name b { display: block; font-size: 12.5px; color: #e0e4ea; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ov-item .ov-name small { color: #8a909a; font-size: 11px; }
+  .ov-eye, .ov-del, .ov-copy {
+    width: 24px; height: 24px; border: none; background: transparent; color: #8a909a;
+    cursor: pointer; border-radius: 4px; font-size: 14px; line-height: 1; padding: 0; flex-shrink: 0;
+  }
+  .ov-eye:hover, .ov-del:hover, .ov-copy:hover { background: #2a2f37; color: #fff; }
+  .ov-del:hover { color: #e53935; }
+  .ov-copy:hover { color: #37d67a; }
+  .ov-empty { color: #8a909a; font-size: 12px; text-align: center; padding: 10px 0 6px; }
+  #overlayParams .param-sec { margin: 14px 0 8px; font-size: 12px; color: #5fb0ff; }
+  #overlayParams .btn-select {
+    width: 100%; padding: 7px 10px; background: #0a0e14;
+    border: 1px solid #2a2f37; border-radius: 4px; color: #e0e0e0; font-size: 12.5px;
+  }
+  #overlayParams input[type="range"] { width: 100%; accent-color: #1e88e5; cursor: pointer; }
+  .ov-mini-btns { display: flex; gap: 6px; margin-top: 6px; }
+  .ov-mini { flex: 1; padding: 5px 0; font-size: 12px; }
+  .ov-pos-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .ov-pos-grid input {
+    width: 100%; box-sizing: border-box; padding: 6px 8px; background: #0a0e14;
+    border: 1px solid #2a2f37; border-radius: 4px; color: #e0e0e0; font-size: 12px;
+    font-family: Consolas, monospace; margin-bottom: 0;
+  }
+  .ov-pos-grid input:focus { outline: none; border-color: #1e88e5; }
+  .ov-mode-btns { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ov-mode { flex: 1; padding: 6px 0; font-size: 12px; }
+  .ov-mode.active { background: #1e88e5; border-color: #1e88e5; color: #fff; }
+  /* 服务器已保存的叠加模型区块 */
+  .ov-server { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #353c46; }
+  .ov-sec-title { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #cfd4dc; margin-bottom: 6px; }
+  .ov-sec-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ov-refresh { background: transparent; border: 1px solid #3a424e; color: #9aa3af; border-radius: 4px; cursor: pointer; font-size: 12px; padding: 0 6px; line-height: 18px; }
+  .ov-refresh:hover { border-color: #1e88e5; color: #cfd4dc; }
+  .ov-server-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+  .ov-server-item { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border: 1px solid #2a3038; border-radius: 6px; background: #171b21; }
+  .ov-server-item .ovs-name { flex: 1; font-size: 12px; color: #cfd4dc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ov-server-item .ovs-size { font-size: 11px; color: #8a909a; }
+  .ov-server-item .ovs-load { background: #1e88e5; border: none; color: #fff; border-radius: 4px; font-size: 11px; padding: 3px 8px; cursor: pointer; }
+  .ov-server-item .ovs-load:hover { background: #1976d2; }
+  .ov-server-item .ovs-del { background: transparent; border: 1px solid #5a3030; color: #ff8585; border-radius: 4px; font-size: 11px; padding: 3px 6px; cursor: pointer; }
+  .ov-server-item .ovs-del:hover { background: #4a1f1f; border-color: #b04040; color: #fff; }
+  .ov-server-empty { color: #8a909a; font-size: 11px; padding: 2px 0; }
+  /* 保存到服务器区块 */
+  .ov-save-box { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #353c46; }
+  .ov-save-btn { width: 100%; padding: 7px 0; font-size: 13px; }
+  .ov-pwd-input { width: 100%; box-sizing: border-box; padding: 6px 8px; background: #1b1f25; border: 1px solid #353c46; border-radius: 6px; color: #cfd4dc; font-size: 12px; }
+  .ov-pwd-input:focus { outline: none; border-color: #1e88e5; }
+  select.ov-pwd-input { height: 30px; cursor: pointer; }
+  .ov-pwd-row { display: flex; gap: 6px; align-items: center; }
+  .ov-pwd-ok { flex: 0 0 auto; padding: 6px 14px; background: #1e88e5; border: none; color: #fff; border-radius: 6px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .ov-pwd-ok:hover { background: #1976d2; }
+  /* ============== 基础体库浮窗（复用叠加浮窗样式） ============== */
+  #primDialog.dialog-overlay {
+    background: transparent; align-items: flex-start; justify-content: flex-start;
+    padding: 64px 18px 18px; pointer-events: none; z-index: 9997;
+  }
+  #primDialog .dialog.prim-panel {
+    pointer-events: auto; width: 332px; max-width: calc(100vw - 24px); max-height: calc(100vh - 90px);
+    padding: 0; background: rgba(28,32,38,0.96); display: flex; flex-direction: column; overflow: hidden;
+  }
+  #primDialog .param-content { overflow-y: auto; }
+  .prim-add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+  .prim-add { padding: 7px 0; font-size: 12px; text-align: center; }
+  #primParams .param-label { font-size: 12px; color: #cfd4dc; }
+  #primParams input[type="text"], #primParams input[type="number"] { color: #e0e0e0; }
   #paramDialog .param-panel.advanced .param-adv { display: block; }
   /* 普通模式：唯一一列自动撑满面板宽度 */
   #paramDialog .param-panel:not(.advanced) .param-col { width: auto; }
@@ -628,6 +722,53 @@
     width: 42px; height: 24px; padding: 0; border: 1px solid #353c46;
     border-radius: 4px; background: transparent; cursor: pointer; flex: none;
   }
+  /* ============== 地形压平浮窗（与其它浮窗一致：深色 + 标题栏拖动 + 最小化/关闭） ============== */
+  #flattenDialog.dialog-overlay {
+    background: transparent; align-items: flex-start; justify-content: flex-start;
+    padding: 64px 18px 18px; pointer-events: none; z-index: 9997;
+  }
+  #flattenDialog .dialog.flat-panel {
+    pointer-events: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    border: 1px solid #2a2f37; border-radius: 10px;
+  }
+  #flattenDialog .flat-header .ov-refresh { line-height: 18px; }
+  #flattenDialog .flat-body { overflow-y: auto; max-height: calc(100vh - 130px); }
+  #flattenDialog .flat-panel.minimized .flat-body { display: none; }
+  /* 最小化：必须 !important —— 面板内联样式写死了 min-height:440px，只藏内容的话窗口不会收缩 */
+  #flattenDialog .flat-panel.minimized { min-height: 0 !important; height: auto !important; width: auto !important; max-width: 380px; }
+  #flattenDialog .flat-panel.minimized .flat-header { border-bottom: none; border-radius: 10px; }
+  #flattenDialog select:focus, #flattenDialog input:focus { outline: none; border-color: #1e88e5; }
+  /* 压平列表 */
+  #flattenDialog .flat-list { display:flex; flex-direction:column; gap:6px; margin-bottom:4px; max-height:260px; overflow-y:auto; }
+  #flattenDialog .flat-empty { color:#6b727d; font-size:12px; padding:6px 2px; text-align:center; border:1px dashed #2a2f37; border-radius:6px; }
+  #flattenDialog .flat-item { border:1px solid #2a2f37; border-radius:8px; padding:6px 8px; background:rgba(10,14,20,0.5); cursor:pointer; }
+  #flattenDialog .flat-item.selected { border-color:#1e88e5; background:rgba(30,136,229,0.12); }
+  #flattenDialog .flat-item-head { display:flex; align-items:center; gap:6px; }
+  #flattenDialog .flat-name { font-size:12px; font-weight:600; color:#e0e4ea; }
+  #flattenDialog .flat-sub { flex:1; font-size:11px; color:#8a909a; text-align:right; }
+  #flattenDialog .flat-del { background:transparent; border:none; color:#ff6b6b; cursor:pointer; font-size:12px; line-height:1; padding:2px 4px; border-radius:4px; }
+  #flattenDialog .flat-del:hover { background:rgba(255,107,107,0.15); }
+  #flattenDialog .flat-blur { width:54px; height:4px; margin:0 2px; cursor:pointer; vertical-align:middle; }
+  #flattenDialog .flat-opacity { width:54px; height:4px; margin:0 2px; cursor:pointer; vertical-align:middle; }
+  #flattenDialog .flat-sliders { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:5px; width:100%; }
+  #flattenDialog .flat-sl { font-size:11px; color:#cfd4dc; display:flex; align-items:center; gap:4px; }
+  #flattenDialog .flat-blur-val, #flattenDialog .flat-op-val { font-size:11px; color:#9aa3ad; min-width:30px; }
+  #flattenDialog .flat-item-ctrl { display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; margin-top:5px; }
+  #flattenDialog .flat-radio { font-size:11px; color:#cfd4dc; display:flex; align-items:center; gap:3px; cursor:pointer; }
+  #flattenDialog .flat-h { width:72px; padding:3px 5px; border:1px solid #2a2f37; border-radius:5px; font-size:12px; background:#0a0e14; color:#e0e4ea; }
+  #flattenDialog .flat-h:disabled { opacity:0.4; }
+  #flattenDialog .flat-item-ctrl span { font-size:11px; color:#8a909a; }
+  /* 压平模式切换（色块 / 模糊）：两模式互斥，只显示当前模式相关控件，互不干扰 */
+  #flattenDialog .flat-mode-btns { display:flex; gap:2px; margin-left:2px; }
+  #flattenDialog .flat-mode-btn { font-size:10px; padding:2px 6px; border:1px solid #2a2f37; border-radius:4px; background:#0a0e14; color:#9aa3ad; cursor:pointer; line-height:1.4; }
+  #flattenDialog .flat-mode-btn.active { background:#1e88e5; color:#fff; border-color:#1e88e5; }
+  #flattenDialog .flat-color-row { display:flex; align-items:center; gap:4px; }
+  #flattenDialog .flat-color { width:22px; height:22px; padding:0; border:1px solid #2a2f37; border-radius:5px; background:none; cursor:pointer; }
+  /* 模糊模式：只显示「模糊」滑块（覆盖层强制满不透明，已是干净的原图模糊）；色块/透明度控件隐藏 */
+  #flattenDialog .mode-blur .flat-color-row { display:none; }
+  #flattenDialog .mode-blur .flat-op-label { display:none; }
+  /* 色块模式：只显示「色块 + 透明度」；模糊滑块隐藏 */
+  #flattenDialog .mode-color .flat-blur-label { display:none; }
   /* 手机端：点高级后仍单列面板——普通参数置顶，向下滚动看高级；所有列宽度样式统一 */
   @media (max-width: 768px) {
     #paramDialog .param-panel.advanced { width: 300px; }
@@ -971,6 +1112,24 @@
 }
 .mobile-menu-item.active { background: #1e88e5; color: #fff; }
 
+/* ============== 顶栏「编辑」下拉菜单（地形压平 / 叠加模型 / 基础体库）============== */
+.edit-dropdown-wrap { position: relative; display: inline-flex; }
+.edit-dropdown {
+  position: absolute; top: 100%; right: 0; margin-top: 6px;
+  min-width: 168px; background: #1c2026; border: 1px solid #2a2f37;
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  padding: 6px; z-index: 10005; display: none; flex-direction: column; gap: 2px;
+}
+.edit-dropdown.open { display: flex; }
+.edit-dropdown-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 10px; background: transparent; border: none; border-radius: 6px;
+  color: #d0d4dc; font-size: 14px; cursor: pointer; text-align: left; font-family: inherit;
+}
+.edit-dropdown-item:hover { background: #2a3038; color: #fff; }
+.edit-dropdown-item > span:first-child { font-size: 16px; }
+.btn .caret { font-size: 10px; opacity: 0.7; margin-left: 2px; }
+
 /* ============== 移动端响应式（≤768px）：隐藏面板+管理按钮，显示汉堡菜单 ============== */
 @media (max-width: 768px) {
   /* 显示汉堡按钮 */
@@ -1017,6 +1176,8 @@
 </style>
 </head>
 <body>
+  <!-- 隐藏的虚拟表单：让所有 type=password 关联进去，消除 Chrome 的 [DOM] Password field is not contained in a form 警告 -->
+  <form id="odmForm" style="display:none" autocomplete="off"></form>
 
 <!-- ============== 首页：大图项目列表 ============== -->
 <div class="home-page" id="homePage">
@@ -1073,11 +1234,21 @@
     <button class="btn" id="btnCopyLink" title="复制当前模型的分享链接（含项目地址，可直接发给别人打开）">
       <span>🔗</span><span>分享链接</span>
     </button>
-    <button class="btn" id="btnEdit" title="编辑当前项目：改名称/备注/封面图" disabled>
-      <span>✏️</span><span>编辑</span>
-    </button>
+    <div class="edit-dropdown-wrap">
+      <button class="btn" id="btnEdit" title="建模工具：地形压平 / 叠加模型 / 基础体库" disabled>
+        <span>✏️</span><span>编辑</span><span class="caret">▾</span>
+      </button>
+      <div class="edit-dropdown" id="editToolsMenu">
+        <button class="edit-dropdown-item" data-tool="flatten"><span>🟩</span>地形压平</button>
+        <button class="edit-dropdown-item" data-tool="overlay"><span>🧩</span>叠加模型</button>
+        <button class="edit-dropdown-item" data-tool="prim"><span>📦</span>基础体库</button>
+      </div>
+    </div>
     <button class="btn" id="btnSave" title="保存当前裁剪与测量标注到项目（下次打开自动恢复）">
       <span>💾</span><span>保存视图</span>
+    </button>
+    <button class="btn" id="btnEditMenu" title="编辑项目：改名称 / 备注 / 封面图">
+      <span>☰</span>
     </button>
   </div>
 </div>
@@ -1108,6 +1279,237 @@
     <div class="help-row">距离测量：连续点击取点</div>
     <div class="help-row">面积测量：双击或再次点工具键闭合</div>
     <div class="help-row">裁剪区域：圈选保留区，双击隐藏区域外</div>
+  </div>
+
+  <!-- 叠加模型浮窗：多模型叠加 + 拖拽摆放（透明背景不挡画布，与画面调参浮窗同款交互） -->
+  <div class="dialog-overlay" id="overlayDialog">
+    <div class="dialog ov-panel" id="overlayPanel">
+      <div class="param-titlebar" id="overlayTitlebar">
+        <span class="param-title">🧩 叠加模型</span>
+        <span class="param-title-actions">
+          <button class="param-min" id="btnOverlayMin" title="最小化 / 还原">—</button>
+          <button class="param-x" id="btnOverlayClose" title="关闭">✕</button>
+        </span>
+      </div>
+      <div class="param-content" id="overlayContent">
+        <button class="btn btn-ghost ov-upload-btn" id="btnOverlayUpload">📁 上传叠加模型（可多选，含 OBJ+MTL+贴图）</button>
+        <input type="file" id="overlayFileInput" accept=".glb,.gltf,.obj,.mtl,.stl,.ply,.fbx,.3mf,.dae,.3ds,.pcd,image/*,.xml,application/xml,text/xml" multiple style="display:none">
+        <div id="overlayEmpty" class="ov-empty">还没有叠加模型，点上面按钮上传</div>
+        <div id="overlayList" class="ov-list"></div>
+
+        <!-- 服务器上已保存的叠加模型（本项目 overlay 文件夹） -->
+        <div id="ovServer" class="ov-server" style="display:none">
+          <div class="ov-sec-title">
+            <span>💾 已保存到服务器（<span id="ovServerDir">overlay</span>）</span>
+            <button class="ov-refresh" id="ovServerRefresh" title="刷新列表">↻</button>
+          </div>
+          <div id="ovServerList" class="ov-server-list"></div>
+          <div class="dialog-hint" style="font-size:11px;">点「加载」把服务器上的叠加模型放进场景；重传同名文件会覆盖服务器上的旧文件。</div>
+        </div>
+
+        <!-- 保存到服务器：明确点按钮才传，成功 / 失败都有明确反馈 -->
+        <div id="ovSaveBox" class="ov-save-box">
+          <div class="ov-sec-title"><span>💾 保存到服务器</span></div>
+          <div id="ovSavePwdRow" style="display:none">
+            <div class="ov-pwd-row">
+              <input type="password" form="odmForm" id="ovSavePwd" class="ov-pwd-input" placeholder="管理密码（与上传 / 删除项目同一把）" autocomplete="off">
+              <button id="ovSavePwdOk" class="ov-pwd-ok">确定</button>
+            </div>
+          </div>
+          <button class="btn btn-ghost ov-save-btn" id="btnOverlaySave">💾 保存到 overlay 文件夹</button>
+        </div>
+
+        <!-- 选中模型的参数区 -->
+        <div id="overlayParams" style="display:none">
+          <div class="param-sec">选中模型参数</div>
+          <div class="param-row">
+            <div class="param-label">上方向（模型的"头"朝哪）</div>
+            <select id="ovUp" class="btn-select">
+              <option value="auto">自动检测（推荐）</option>
+              <option value="y">Y 轴向上（多数软件默认）</option>
+              <option value="z">Z 轴向上（ODM / 航拍惯例）</option>
+              <option value="x">X 轴向上</option>
+            </select>
+          </div>
+          <div class="param-row">
+            <div class="param-label">大小比例 <span class="param-val" id="ovScaleVal">×1</span></div>
+            <input type="range" id="ovScale" min="-2" max="2" step="0.01" value="0">
+            <div class="ov-mini-btns">
+              <button class="btn btn-ghost ov-mini" data-act="half">÷2</button>
+              <button class="btn btn-ghost ov-mini" data-act="double">×2</button>
+              <button class="btn btn-ghost ov-mini" data-act="fit">自动适配</button>
+            </div>
+          </div>
+          <div class="param-row">
+            <div class="param-label">朝向（水平旋转 360°） <span class="param-val" id="ovHeadingVal">0°</span></div>
+            <input type="range" id="ovHeading" min="0" max="360" step="1" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-label">俯仰 <span class="param-val" id="ovPitchVal">0°</span></div>
+            <input type="range" id="ovPitch" min="-180" max="180" step="1" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-label">侧倾 <span class="param-val" id="ovRollVal">0°</span></div>
+            <input type="range" id="ovRoll" min="-180" max="180" step="1" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-label">位置（X 东 · Y 高度 · Z 南北）</div>
+            <div class="ov-pos-grid">
+              <input type="number" id="ovPosX" step="any" placeholder="X">
+              <input type="number" id="ovPosY" step="any" placeholder="Y">
+              <input type="number" id="ovPosZ" step="any" placeholder="Z">
+            </div>
+            <div class="ov-mini-btns">
+              <button class="btn btn-ghost ov-mini" data-act="ground">贴地</button>
+              <button class="btn btn-ghost ov-mini" data-act="center">居中</button>
+              <button class="btn btn-ghost ov-mini" data-act="reset">回原点</button>
+            </div>
+          </div>
+          <div class="param-sec">画面直接拖拽</div>
+          <div class="ov-mode-btns">
+            <button class="btn btn-ghost ov-mode active" data-mode="translate">✥ 移动</button>
+            <button class="btn btn-ghost ov-mode" data-mode="rotate">⟳ 旋转</button>
+            <button class="btn btn-ghost ov-mode" data-mode="scale">⤢ 缩放</button>
+          </div>
+          <div class="dialog-hint">在画面上直接点击叠加模型即可选中（绿框）；拖彩色手柄 = 移动 / 旋转 / 缩放，拖空白处 = 旋转视角，两不耽误。滑块调过的值和手柄拖出的结果实时同步。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 基础体库浮窗：在场景里画立方体 / 球体 / 文字等基础几何体 -->
+  <div class="dialog-overlay" id="primDialog">
+    <div class="dialog prim-panel" id="primPanel">
+      <div class="param-titlebar" id="primTitlebar">
+        <span class="param-title">📦 基础体库</span>
+        <span class="param-title-actions">
+          <button class="param-min" id="btnPrimMin" title="最小化 / 还原">—</button>
+          <button class="param-x" id="btnPrimClose" title="关闭">✕</button>
+        </span>
+      </div>
+      <div class="param-content" id="primContent">
+        <div class="param-sec">添加基础体（点一下就放进场景）</div>
+        <div id="primAddGrid" class="prim-add-grid">
+          <button class="btn btn-ghost prim-add" data-type="box">⬛ 立方体</button>
+          <button class="btn btn-ghost prim-add" data-type="sphere">⚪ 球体</button>
+          <button class="btn btn-ghost prim-add" data-type="cylinder">🛢 圆柱</button>
+          <button class="btn btn-ghost prim-add" data-type="cone">🔺 圆锥</button>
+          <button class="btn btn-ghost prim-add" data-type="torus">⭕ 圆环</button>
+          <button class="btn btn-ghost prim-add" data-type="plane">▭ 平面</button>
+          <button class="btn btn-ghost prim-add" data-type="capsule">💊 胶囊</button>
+          <button class="btn btn-ghost prim-add" data-type="extrude">🟦 拉伸体</button>
+          <button class="btn btn-ghost prim-add" data-type="lathe">🏺 车削体</button>
+          <button class="btn btn-ghost prim-add" data-type="tube">🌀 螺旋管</button>
+          <button class="btn btn-ghost prim-add" data-type="text">🔤 文字</button>
+        </div>
+        <div class="dialog-hint">提示：基础体尺寸单位为 <b>米（m）</b>，与模型坐标系一致；数值「1」即 1 米（非 cm / mm）。</div>
+
+        <div id="primEmpty" class="ov-empty">还没有基础体，点上面按钮添加</div>
+        <div id="primList" class="ov-list"></div>
+
+        <!-- 布尔运算：选中两个体做 合并 / 相减 / 相交 -->
+        <div class="param-sec">布尔运算（合并 / 相减 / 相交）</div>
+        <div class="ov-pos-grid">
+          <select id="primBoolA" class="ov-pwd-input"><option value="">体 A</option></select>
+          <select id="primBoolB" class="ov-pwd-input"><option value="">体 B</option></select>
+        </div>
+        <div class="ov-mini-btns">
+          <button class="btn btn-ghost ov-mini" id="primBoolUnion" title="A ∪ B：把两个体合并成一个整体">∪ 合并</button>
+          <button class="btn btn-ghost ov-mini" id="primBoolSub" title="A − B：从 A 中挖掉 B 的部分">− 相减</button>
+          <button class="btn btn-ghost ov-mini" id="primBoolInter" title="A ∩ B：只保留两个体重叠的部分">∩ 相交</button>
+        </div>
+        <div class="param-row param-row-switch">
+          <div class="param-label">保留原模型</div>
+          <label class="switch"><input type="checkbox" id="primBoolKeep" checked><span class="slider"></span></label>
+        </div>
+        <div class="dialog-hint">选好体 A / 体 B（默认把当前选中体填到 A），点运算即生成新体。结果可继续移动 / 旋转 / 缩放 / 改色 / 导出 / 保存叠加。复杂网格运算稍慢，请稍候。</div>
+
+        <!-- 选中基础体的参数 -->
+        <div id="primParams" style="display:none">
+          <div class="param-sec">选中基础体参数</div>
+          <div class="param-row">
+            <div class="param-label">名称</div>
+            <input type="text" id="primName" class="ov-pwd-input" placeholder="自定义名称" title="名称：在左侧模型列表里显示的标签，可随意修改">
+          </div>
+          <div class="param-row" id="primTextRow" style="display:none">
+            <div class="param-label">文字内容</div>
+            <input type="text" id="primText" class="ov-pwd-input" placeholder="输入文字" title="文字内容：要在场景里生成的文字，改完会自动更新">
+          </div>
+
+          <div class="param-sec">尺寸（单位：米 m）</div>
+          <div id="primSizeGrid" class="ov-pos-grid"></div>
+
+          <div class="param-sec">位置（X 东 · Y 高度 · Z 南北，单位：米 m）</div>
+          <div class="ov-pos-grid">
+            <input type="number" id="primPosX" step="any" placeholder="X" title="X 位置：模型中心相对原点的东西方向偏移（米），向右为正">
+            <input type="number" id="primPosY" step="any" placeholder="Y" title="Y 位置：高度方向偏移（米），向上为正">
+            <input type="number" id="primPosZ" step="any" placeholder="Z" title="Z 位置：模型中心相对原点的南北方向偏移（米），向屏幕外（南）为正">
+          </div>
+          <div class="ov-mini-btns">
+            <button class="btn btn-ghost ov-mini" id="primGround">贴地</button>
+            <button class="btn btn-ghost ov-mini" id="primCenter">居中</button>
+            <button class="btn btn-ghost ov-mini" id="primReset">回原点</button>
+          </div>
+
+          <div class="param-sec">旋转（度）</div>
+          <div class="ov-pos-grid">
+            <input type="number" id="primRotX" step="any" placeholder="X" title="X 轴旋转：绕东西轴翻滚的角度（度）">
+            <input type="number" id="primRotY" step="any" placeholder="Y" title="Y 轴旋转：绕竖直轴左右转动的角度（度）">
+            <input type="number" id="primRotZ" step="any" placeholder="Z" title="Z 轴旋转：绕南北轴俯仰的角度（度）">
+          </div>
+
+          <div class="param-sec">缩放</div>
+          <div class="param-row">
+            <div class="param-label">统一缩放 <span class="param-val" id="primScaleVal">×1</span></div>
+            <input type="range" id="primScale" min="-2" max="2" step="0.01" value="0" title="统一缩放：整体同时放大/缩小（×2 = 大一倍，×0.5 = 缩小一半）。下面三个是单独方向缩放">
+          </div>
+          <div class="ov-pos-grid">
+            <input type="number" id="primSX" step="any" placeholder="X" title="X 方向单独缩放倍数（1 = 原始大小，2 = 放大一倍）">
+            <input type="number" id="primSY" step="any" placeholder="Y" title="Y 方向单独缩放倍数（1 = 原始大小，2 = 放大一倍）">
+            <input type="number" id="primSZ" step="any" placeholder="Z" title="Z 方向单独缩放倍数（1 = 原始大小，2 = 放大一倍）">
+          </div>
+
+          <div class="param-sec">外观</div>
+          <div class="param-row param-row-color">
+            <div class="param-label">颜色</div>
+            <input type="color" id="primColor" class="param-color-input" value="#4f9bff" title="颜色：模型表面的颜色">
+          </div>
+          <div class="param-row">
+            <div class="param-label">透明度 <span class="param-val" id="primOpacityVal">100%</span></div>
+            <input type="range" id="primOpacity" min="0" max="1" step="0.01" value="1" title="透明度：0 = 完全透明看不见，1 = 完全不透明">
+          </div>
+          <div class="param-row param-row-switch">
+            <div class="param-label">显示</div>
+            <label class="switch"><input type="checkbox" id="primVisible" checked><span class="slider"></span></label>
+          </div>
+
+          <div class="param-sec">画面直接拖拽</div>
+          <div class="ov-mode-btns">
+            <button class="btn btn-ghost ov-mode active" data-mode="translate" id="primModeTranslate">✥ 移动</button>
+            <button class="btn btn-ghost ov-mode" data-mode="rotate" id="primModeRotate">⟳ 旋转</button>
+            <button class="btn btn-ghost ov-mode" data-mode="scale" id="primModeScale">⤢ 缩放</button>
+          </div>
+          <div class="dialog-hint">点画面上的基础体即可选中（绿框）；拖彩色手柄 = 移动 / 旋转 / 缩放，拖空白处 = 旋转视角。点空白处取消选中。</div>
+
+          <div class="param-sec">导出 / 清空</div>
+          <div class="ov-mini-btns">
+            <button class="btn btn-ghost ov-mini" id="primExportGLB">导出 GLB</button>
+            <button class="btn btn-ghost ov-mini" id="primExportOBJ">导出 OBJ</button>
+            <button class="btn btn-ghost ov-mini" id="primClear" style="color:#ff8585">清空</button>
+          </div>
+
+          <div class="param-sec">保存到服务器叠加</div>
+          <div class="ov-mini-btns">
+            <button class="btn btn-primary ov-mini" id="primSaveOverlay" style="flex:1">💾 保存到叠加服务器</button>
+          </div>
+          <div class="ov-pwd-row" id="primSavePwdRow" style="display:none">
+            <input type="password" form="odmForm" id="primSavePwd" placeholder="管理密码（与上传/删除同一把）" />
+            <button class="ov-pwd-ok" id="primSavePwdOk">确定</button>
+          </div>
+          <div class="dialog-hint" id="primSaveHint"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 右侧：工具 + 结果 -->
@@ -1141,6 +1543,59 @@
       <button class="tool-btn" id="btnTuning" title="画面调参：实时调节曝光、各向异性、环境光照、纹理亮度等">
         <span class="tool-icon">🎚️</span><span>画面调参</span>
       </button>
+    </div>
+  </div>
+
+  <!-- 工具入口按钮：已从「工具面板」移出，隐藏保留以驱动对应浮窗；由顶栏「编辑」下拉菜单触发 -->
+  <div id="hiddenToolLaunchers" style="display:none;" aria-hidden="true">
+    <button class="tool-btn" id="btnFlatten" title="地形压平：框选一块地，把土堆/杂草等压成平地，再摆自建模型">
+      <span class="tool-icon">🟩</span><span>地形压平</span>
+    </button>
+    <button class="tool-btn" id="btnOverlay" title="叠加模型：在当前模型上叠加本地模型（棚子/设备等），可拖拽摆放位置、朝向、大小">
+      <span class="tool-icon">🧩</span><span>叠加模型</span>
+    </button>
+    <button class="tool-btn" id="btnPrimitives" title="基础体库：在场景里画立方体、球体、文字等各种基础几何体，可拖动 / 调尺寸 / 导出 GLB·OBJ">
+      <span class="tool-icon">📦</span><span>基础体库</span>
+    </button>
+  </div>
+
+  <!-- 地形压平工具浮窗：可拖动（标题栏拖动）、不自动关闭，支持实时高程 -->
+  <div class="dialog-overlay" id="flattenDialog" style="align-items:flex-start; justify-content:flex-start; padding:64px 18px 18px; pointer-events:none; z-index:9997;">
+    <div class="dialog flat-panel" style="pointer-events:auto; position:fixed; left:18px; bottom:18px; width:380px; max-width:calc(100vw - 24px); min-height:440px; padding:0; background:rgba(28,32,38,0.96); display:flex; flex-direction:column; overflow:hidden;">
+      <div class="flat-header" id="flattenHeader" style="display:flex; align-items:center; gap:8px; padding:9px 12px; cursor:move; background:rgba(255,255,255,0.04); border-bottom:1px solid #2a2f37;">
+        <span style="font-size:14px; color:#e0e4ea;">🌱 地形压平</span>
+        <span style="flex:1;"></span>
+        <button class="ov-refresh" id="btnFlattenMin" title="最小化">—</button>
+        <button class="ov-refresh" id="btnFlattenClose" title="关闭工具">✕</button>
+      </div>
+      <div class="param-content flat-body" style="padding:12px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <label style="white-space:nowrap; font-size:12px; color:#cfd4dc;">新建压平·压平到</label>
+          <select id="flattenBase" style="flex:1; padding:4px 6px; border:1px solid #2a2f37; border-radius:6px; font-size:12px; background:#0a0e14; color:#e0e4ea;">
+            <option value="min">区域最低点（铲平土堆/杂草）</option>
+            <option value="custom">自定义高度</option>
+          </select>
+        </div>
+        <div id="flattenCustomRow" style="display:none; align-items:center; gap:8px; margin-bottom:8px;">
+          <label style="white-space:nowrap; font-size:12px; color:#cfd4dc;">自定义高程</label>
+          <input type="number" id="flattenCustomH" step="any" placeholder="相对模型原点的高度" style="flex:1; min-width:0; padding:4px 6px; border:1px solid #2a2f37; border-radius:6px; font-size:12px; background:#0a0e14; color:#e0e4ea;">
+          <span style="font-size:12px; color:#8a909a;">m</span>
+        </div>
+        <div id="flattenHeightInfo" style="color:#5fb0ff; font-size:12px; margin-bottom:8px;">连续点击地面取点（≥3 点），双击闭合并压平</div>
+        <div style="color:#8a909a; font-size:11px; margin-bottom:8px; line-height:1.5;">选点后双击闭合即压平并加入下方列表；每块可单独设「默认最低点」或「自定义高度」，也可单独删除。</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <span style="font-size:12px; color:#cfd4dc; font-weight:600;">已压平列表</span>
+          <span id="flattenCount" style="font-size:11px; color:#8a909a;">0 块</span>
+        </div>
+        <div id="flattenList" class="flat-list"></div>
+        <div style="color:#8a909a; font-size:11px; margin-top:6px; line-height:1.5;">点列表选中某块 → 模型上显示该块轮廓的点与边线：拖动圆点可改形状，点边中间的虚线圆点可增加点。</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+          <button class="btn btn-ghost" id="flattenUndo" style="padding:5px 8px; font-size:12px;">↩ 撤销</button>
+          <button class="btn btn-ghost" id="flattenClear" style="padding:5px 8px; font-size:12px;">清空选区</button>
+          <button class="btn btn-ghost" id="flattenSave" style="padding:5px 8px; font-size:12px;">💾 保存</button>
+          <button class="btn btn-primary" id="flattenClose" style="padding:5px 8px; font-size:12px;">关闭</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1426,7 +1881,7 @@
       <div class="cover-preview-meta" id="coverPreviewMeta"></div>
     </div>
     <label class="dlg-label">访问密码（上传需验证）</label>
-    <input type="password" id="uploadPwdInput" placeholder="请输入管理密码" autocomplete="off">
+    <input type="password" form="odmForm" id="uploadPwdInput" placeholder="请输入管理密码" autocomplete="off">
     <div class="pwd-hint" id="pwdHint">需输入正确密码才能上传</div>
     <div class="dialog-actions">
       <button class="btn" id="btnUploadCancel">取消</button>
@@ -1477,7 +1932,7 @@
       <div class="cover-preview-meta" id="editCoverPreviewMeta"></div>
     </div>
     <label class="dlg-label">访问密码（编辑需验证）</label>
-    <input type="password" id="editPwdInput" placeholder="请输入管理密码" autocomplete="off">
+    <input type="password" form="odmForm" id="editPwdInput" placeholder="请输入管理密码" autocomplete="off">
     <div class="pwd-hint" id="editPwdHint">需输入正确密码才能保存</div>
     <div class="dialog-actions">
       <button class="btn btn-danger" id="btnDeleteProject" disabled title="删除整个项目（需输入密码）">删除项目</button>
@@ -1510,10 +1965,10 @@
       <div class="cover-preview-meta" id="setLogoMobilePreviewMeta"></div>
     </div>
     <label class="dlg-label">当前密码（必填，保存时校验）</label>
-    <input type="password" id="setPwdInput" placeholder="请输入当前密码" autocomplete="off">
+    <input type="password" form="odmForm" id="setPwdInput" placeholder="请输入当前密码" autocomplete="off">
     <div class="pwd-hint" id="setPwdHint">需输入当前密码才能保存</div>
     <label class="dlg-label">新密码（选填，留空则不修改）</label>
-    <input type="password" id="setNewPwdInput" placeholder="如留空则保持原密码" autocomplete="off">
+    <input type="password" form="odmForm" id="setNewPwdInput" placeholder="如留空则保持原密码" autocomplete="off">
     <div class="dialog-actions">
       <button class="btn" id="btnSettingsCancel">取消</button>
       <button class="btn btn-primary" id="btnSettingsOk" disabled>保存</button>
@@ -1529,7 +1984,7 @@
       进入管理模式后可删除项目。请输入管理密码（与上传密码相同）。
     </div>
     <label class="dlg-label">管理密码</label>
-    <input type="password" id="managePwdInput" placeholder="请输入管理密码" autocomplete="off">
+    <input type="password" form="odmForm" id="managePwdInput" placeholder="请输入管理密码" autocomplete="off">
     <div class="pwd-hint" id="managePwdHint">需输入正确密码才能进入管理模式</div>
     <div class="dialog-actions">
       <button class="btn" id="btnManageCancel">取消</button>
@@ -1605,13 +2060,9 @@
     <div class="mobile-drawer-group">测量工具</div>
     <button class="mobile-menu-item" id="mDistance"><span>📏</span>距离测量</button>
     <button class="mobile-menu-item" id="mArea"><span>📐</span>面积测量</button>
-    <button class="mobile-menu-item" id="mPoint"><span>📍</span>GPS 打点</button>
-    <button class="mobile-menu-item" id="mCrop"><span>✂️</span>裁剪区域</button>
     <button class="mobile-menu-item" id="mShowAll"><span>👁️</span>显示全部</button>
     <button class="mobile-menu-item" id="mSun"><span>☀️</span>日照分析</button>
-    <button class="mobile-menu-item" id="mSnapshot"><span>📷</span>画面截图</button>
     <button class="mobile-menu-item" id="mTune"><span>🎚️</span>画面调参</button>
-    <button class="mobile-menu-item" id="mClear"><span>🗑</span>清除测量</button>
 
     <div class="mobile-drawer-group">项目操作</div>
     <button class="mobile-menu-item" id="mSave"><span>💾</span>保存视图</button>
@@ -1764,6 +2215,7 @@ window.__coverFallback = function (img) {
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';   // 叠加模型：画面拖拽手柄（移动/旋转/缩放）
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
@@ -1777,6 +2229,8 @@ import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
 import { TDSLoader } from 'three/addons/loaders/TDSLoader.js';
 import { PCDLoader } from 'three/addons/loaders/PCDLoader.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+import { CSG } from 'three/addons/libs/three-csg-ts/index.js';  // 基础体库布尔运算（并集/差集/交集），离线打包，仅依赖 three 核心
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 // 粗线 Line2（WebGL 下真实支持 linewidth 像素值，比 LineBasicMaterial 强）
 import { Line2 } from 'three/addons/lines/Line2.js';
@@ -1832,6 +2286,9 @@ let draggingPoint = null;   // 正在拖拽的测点 { path, index }（仅测量
 let focusedPoint  = null;   // 当前聚焦（选中）的测点 { path, index }，黄色高亮
 let dragMoved     = false;  // 本次按下到松开是否真正移动过（区分单击聚焦 / 拖拽）
 let currentPath = null;                // 正在绘制中的测量（{type, points, objects, pointMarkers}）
+// 叠加模型（newODM）：root 列表供测量 / 打点工具的射线拾取使用，让叠加模型也能被测量
+// 数组引用不变（只 push / splice），叠加 IIFE 内部维护；测量代码在模块顶层可直接读
+let overlayModelRoots = [];
 let measurementGroup;                  // 所有测量对象的父节点
 let grid;                               // 网格地面（参考平面），onModelLoaded 时跟随模型底面更新
 let lastExt = 'glb';                    // 最近一次加载的格式：仅用于材质/解析分支选择；up 方向摆正对所有格式统一处理
@@ -1927,7 +2384,7 @@ window.addEventListener('load', () => {
   // v6 标识：含日照阴影面板 / 移动端滑块 / fabReset 配色 / TDZ 修复 / 移动端首页上传卡隐藏
   // 自动算并打印当前 index.html 的 SHA-1 前 8 位，便于和本地文件比对
   // 期望值：每次更新 index.html 后南哥会告诉你新的 hash 前 8 位
-  console.log('%c✅ ODM Viewer v6 已加载（日照阴影面板+TDZ修复+移动端滑块+fabReset配色+移动端上传卡隐藏）', 'color:#34c759;font:bold 14px sans-serif;background:#0d0d0d;padding:6px 10px;border-radius:4px');
+  console.log('%c✅ ODM Viewer v6-new 已加载（叠加模型版：多模型上传+参数面板+画面拖拽）', 'color:#34c759;font:bold 14px sans-serif;background:#0d0d0d;padding:6px 10px;border-radius:4px');
   // 用 fetch 取自身（加时间戳绕过缓存），用纯 JS djb2 算 fingerprint 前 8 位
   // 不用 crypto.subtle：它只在 HTTPS/localhost（Secure Context）下可用，HTTP 内网环境 undefined
   // djb2 32-bit hash，前 8 位 hex 已足够区分"是不是同一份文件"
@@ -2056,6 +2513,34 @@ function odmAskWritePwd(reason) {
 function odmClearWritePwd() {
   try { localStorage.removeItem('odm_write_pwd'); } catch (e) {}
 }
+
+// 叠加模型「保存到服务器 / 删除」共用一把管理密码：
+// 密码校验失败时（needAuth）弹出输入框，用户填完点「确定」或回车，
+// 用新密码自动重试上次操作（_ovPwdRetry 保存待重试的回调）。避免「删不掉 / 存不了」的死路。
+let _ovPwdRetry = null;
+function ovSubmitPwd() {
+  const inp = $('ovSavePwd');
+  const v = (inp.value || '').trim();
+  if (!v) { setStatus('⚠ 请先填管理密码（与上传 / 删除项目同一把）'); inp.focus(); return; }
+  try { localStorage.setItem('odm_write_pwd', v); } catch (_) {}   // 验证通过，本机记住
+  inp.value = '';
+  $('ovSavePwdRow').style.display = 'none';
+  const fn = _ovPwdRetry; _ovPwdRetry = null;
+  if (fn) fn();
+}
+function ovAskPwd(retryFn, msg) {
+  odmClearWritePwd();
+  _ovPwdRetry = retryFn;
+  const inp = $('ovSavePwd');
+  if (inp) inp.value = '';
+  inp.onkeydown = (e) => { if (e.key === 'Enter') ovSubmitPwd(); };   // 回车提交（覆盖式，不叠加）
+  $('ovSavePwdRow').style.display = '';
+  if (msg) setStatus(msg);
+  inp.focus();
+}
+try {
+  $('ovSavePwdOk').onclick = ovSubmitPwd;
+} catch (_) {}
 let _rpAuthAsked = false;   // 本次会话是否已弹过一次「参数同步授权」（避免反复打扰）
 
 let _rpSyncTimer = null;
@@ -2582,6 +3067,63 @@ function captureScreenshot() {
   }
 }
 
+let _dialogZ = 10000;
+function bringDialogToFront(el) { if (!el) return; _dialogZ += 1; el.style.zIndex = String(_dialogZ); }
+function initDialogZOrder() {
+  ['flattenDialog','overlayDialog','primDialog','paramDialog','sunDialog','tunePanel'].forEach(id => {
+    const d = document.getElementById(id);
+    if (!d) return;
+    const panel = d.querySelector('.dialog') || d;
+    if (!panel) return;
+    panel.addEventListener('mousedown', () => bringDialogToFront(d), true);
+  });
+}
+initDialogZOrder();
+
+// ====== 压平「屏幕空间高斯模糊」覆盖层：模块级常量/着色器源码（必须先于 init() 声明，被 animate() 同步触发） ======
+let flattenOverlayGroup = null; // 所有压平着色层的父节点（scene 级，世界坐标）
+let flattenBlurRT = null;       // 离屏渲染目标：不含覆盖层的场景，供模糊覆盖层采样
+let flattenCapY = [];           // 每块压平面的世界 Y（重建时缓存，用于画覆盖层）
+let flattenEditObjects = [];    // 「选中块」轮廓编辑标记（角点 + 闭合边线 + 每边中点辅助点）
+let flattenEditMidMarkers = []; // 每边中点辅助点（点它 → 在该边中间插入一个新点），与面积测量一致
+const DEFAULT_FLATTEN_BLUR = 0.5;     // 默认模糊强度 0~1（0=清晰，1=最强）
+const DEFAULT_FLATTEN_OPACITY = 0.85; // 默认覆盖层不透明度 0~1
+const DEFAULT_FLATTEN_COLOR = '#ffcc00';
+const FLATTEN_PALETTE = ['#ffcc00', '#33aaff', '#ff5577', '#66dd88', '#aa66ff', '#ff9933', '#00cccc', '#ff66cc'];
+function nextFlattenColor() { return FLATTEN_PALETTE[flattenOps.length % FLATTEN_PALETTE.length]; }
+const FLATTEN_BLUR_VS = `
+  varying vec2 vScreenUV;
+  void main() {
+    vec4 clip = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vScreenUV = (clip.xy / clip.w) * 0.5 + 0.5;
+    gl_Position = clip;
+  }
+`;
+const FLATTEN_BLUR_FS = `
+  uniform sampler2D tDiffuse;
+  uniform vec2 uResolution;
+  uniform float uStrength;   // 模糊半径 0~1
+  uniform float uOpacity;    // 覆盖层不透明度 0~1
+  varying vec2 vScreenUV;
+  void main() {
+    vec2 texel = 1.0 / uResolution;
+    float radius = uStrength * 6.0;            // 最大约 6 像素半径
+    vec4 sum = vec4(0.0);
+    float wsum = 0.0;
+    for (int x = -2; x <= 2; x++) {
+      for (int y = -2; y <= 2; y++) {
+        vec2 off = vec2(float(x), float(y)) * texel * radius;
+        float d2 = float(x * x + y * y);
+        float w = exp(-d2 / (2.0 * (uStrength * 2.5 + 0.4)));
+        sum += texture2D(tDiffuse, vScreenUV + off) * w;
+        wsum += w;
+      }
+    }
+    vec3 blurred = (sum / wsum).rgb;
+    gl_FragColor = vec4(blurred, uOpacity);
+  }
+`;
+
 init();
 animate();
 
@@ -2683,6 +3225,32 @@ function init() {
   document.getElementById('btnArea').addEventListener('click', () => toggleTool('area'));
   document.getElementById('btnCrop').addEventListener('click', toggleCrop);
   document.getElementById('btnPoint').addEventListener('click', () => toggleTool('point'));   // 打点工具
+  document.getElementById('btnFlatten').addEventListener('click', () => toggleTool('flatten')); // 地形压平
+  document.getElementById('flattenBase').addEventListener('change', () => {
+    flattenBase = document.getElementById('flattenBase').value;
+    document.getElementById('flattenCustomRow').style.display = (flattenBase === 'custom') ? 'flex' : 'none';
+  });
+  document.getElementById('flattenCustomH').addEventListener('input', () => {
+    flattenCustomH = parseFloat(document.getElementById('flattenCustomH').value) || 0;
+  });
+  document.getElementById('flattenUndo').addEventListener('click', undoFlatten);
+  document.getElementById('flattenClear').addEventListener('click', () => {
+    clearFlattenSelection();
+    renderFlattenEditHandles();   // 只清「正在画的选点」，列表里选中块的轮廓点线保留
+    setStatus('已清空选区，可重新取点');
+  });
+  document.getElementById('flattenSave').addEventListener('click', saveProjectState); // 持久化（含压平记录）
+  document.getElementById('flattenClose').addEventListener('click', () => setTool('none'));
+  document.getElementById('btnFlattenClose').addEventListener('click', () => setTool('none'));
+  document.getElementById('btnFlattenMin').addEventListener('click', () => {
+    const p = document.querySelector('#flattenDialog .flat-panel'); if (!p) return;
+    const m = p.classList.toggle('minimized');
+    const b = document.getElementById('btnFlattenMin');
+    b.textContent = m ? '□' : '—';
+    b.title = m ? '展开' : '最小化';
+    b.style.color = m ? '#5fb0ff' : '';
+  });
+  initFlattenDialogDrag();
   document.getElementById('btnShowAll').addEventListener('click', showAllMeshes);
   document.getElementById('btnSunAnalysis').addEventListener('click', toggleSunAnalysis);
   document.getElementById('btnSnapshot').addEventListener('click', captureScreenshot);
@@ -2752,7 +3320,32 @@ function init() {
   // 项目列表按钮已移除（首页可见完整项目列表，查看页用「返回首页」即可）
   // （onProjectListClick 保留但不再被顶部按钮触发；函数内已做 btnProjectList 空判断容错）
   document.getElementById('btnSave').addEventListener('click', saveProjectState);
-  document.getElementById('btnEdit').addEventListener('click', openEditDialog);   // 打开编辑项目浮窗（改名称/备注/封面图）
+  // 「编辑」按钮 → 下拉菜单（地形压平 / 叠加模型 / 基础体库），从工具面板移入顶栏
+  (function initEditDropdown() {
+    const btn = document.getElementById('btnEdit');
+    const menu = document.getElementById('editToolsMenu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('open');
+    });
+    menu.querySelectorAll('.edit-dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const t = item.dataset.tool;
+        if (t === 'flatten') document.getElementById('btnFlatten')?.click();
+        else if (t === 'overlay') document.getElementById('btnOverlay')?.click();
+        else if (t === 'prim') document.getElementById('btnPrimitives')?.click();
+        menu.classList.remove('open');
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (menu.classList.contains('open') && e.target !== btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove('open');
+      }
+    });
+  })();
+  // 顶栏汉堡按钮（☰）→ 原来的「编辑项目」窗口（改名称 / 备注 / 封面图）
+  document.getElementById('btnEditMenu').addEventListener('click', openEditDialog);
   document.getElementById('btnCopyLink').addEventListener('click', copyShareLink); // 复制当前模型的分享链接
   document.getElementById('upAxisSel').addEventListener('change', (e) => reorientWithAxis(e.target.value));
   document.getElementById('pdManage').addEventListener('click', () => {
@@ -3031,7 +3624,7 @@ function updatePanSpeed() {
         if (_panRayDir.lengthSq() > 1e-12) {
           _panRayDir.normalize();
           raycaster.set(camera.position, _panRayDir);
-          const hit = raycaster.intersectObject(currentModel, true);
+          const hit = raycaster.intersectObjects(rayPickTargets(), true);
           if (hit.length && hit[0].distance > 0.01) _panRayDist = hit[0].distance;
         }
       }
@@ -3103,6 +3696,27 @@ function animate() {
       if (sp) setSpriteScreenSize(sp, 7.2);
     }
   }
+  // 压平：屏幕空间高斯模糊覆盖层——先把「不含覆盖层」的场景渲到离屏 RT，覆盖层在其屏幕位置采样并模糊
+  if (flattenOverlayGroup && flattenOverlayGroup.visible && flattenOverlayGroup.children.length) {
+    const bsize = renderer.getDrawingBufferSize(new THREE.Vector2());
+    if (!flattenBlurRT) {
+      flattenBlurRT = new THREE.WebGLRenderTarget(bsize.x, bsize.y, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true });
+    } else if (flattenBlurRT.width !== bsize.x || flattenBlurRT.height !== bsize.y) {
+      flattenBlurRT.setSize(bsize.x, bsize.y);
+    }
+    flattenBlurRT.texture.colorSpace = THREE.SRGBColorSpace;   // 修复：RT 默认线性色彩，模糊 ShaderMaterial 把线性值直接写到 sRGB 画布会整体偏暗/发黑；设为 sRGB 让场景进 RT 时即编码，与画布一致
+    flattenOverlayGroup.visible = false;
+    renderer.setRenderTarget(flattenBlurRT);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    flattenOverlayGroup.visible = true;
+    flattenOverlayGroup.children.forEach(m => {
+      if (m.material && m.material.uniforms) {
+        m.material.uniforms.tDiffuse.value = flattenBlurRT.texture;
+        m.material.uniforms.uResolution.value.set(bsize.x, bsize.y);
+      }
+    });
+  }
   // 后期特效链：任一特效开启时走 EffectComposer（FXAA/Bloom/SSAO/调色）；全关时普通渲染零开销
   if (composer && postFXActive) {
     renderPass.camera = camera;            // 兼容 2D/3D 双相机切换
@@ -3151,10 +3765,11 @@ function applyObjMaterial(obj) {
     const src = o.material;
     const list = Array.isArray(src) ? src : [src];
     const out = list.map((m) => {
-      if (!m) return new THREE.MeshStandardMaterial({ color: 0xcfcfcf, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide });
+      // 白模兜底材质：浅蓝灰 + 中等自发光，确保在 PBR 阴影 / 背光面也能看见几何（与 buildItem 兜底一致）
+      if (!m) return new THREE.MeshStandardMaterial({ color: 0xb8c4d0, roughness: 0.7, metalness: 0.0, side: THREE.DoubleSide, emissive: 0x888888 });
       const isPlain = m.isMeshPhongMaterial && !m.map && (!m.color || m.color.getHex() === 0xffffff);
       const nm = isPlain
-        ? new THREE.MeshStandardMaterial({ color: (m.color && m.color.getHex()) || 0xcfcfcf, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide })
+        ? new THREE.MeshStandardMaterial({ color: (m.color && m.color.getHex()) || 0xb8c4d0, roughness: 0.7, metalness: 0.0, side: THREE.DoubleSide, emissive: 0x888888 })
         : m;
       nm.side = THREE.DoubleSide;
       return nm;
@@ -3168,23 +3783,152 @@ function parseMtlText(mtlText, opts) {
   opts = opts || {};
   const loader = new MTLLoader();
   if (opts.resourcePath) { loader.setPath(opts.resourcePath); loader.setResourcePath(opts.resourcePath); }
-  if (opts.fileMap) loader.textureLoader = makeMapTextureLoader(opts.fileMap);
+  if (opts.fileMap) {
+    const tl = makeMapTextureLoader(opts.fileMap);
+    // 关键：MTLLoader 内部的 MaterialCreator.loadTexture() 走 manager.getHandler(url)，
+    // 注册到 manager 后 map_Kd 触发的贴图请求会自动匹配到 wrapper，不再走默认 TextureLoader
+    loader.manager.addHandler(/\.(jpe?g|png|bmp|tga|tiff?|webp|hdr|exr|gif)$/i, tl);
+  }
   const materials = loader.parse(mtlText);
   materials.preload();
   return materials;
 }
 
+/** 通用读文本：优先 Blob.text()，失败回退 FileReader（部分浏览器/打包环境 File.text() 会抛 NotFoundError） */
+function readFileAsText(blob) {
+  if (!blob) return Promise.reject(new Error('no blob'));
+  if (typeof blob.text === 'function') {
+    return blob.text().catch((e) => new Promise((res, rej) => {
+      try {
+        const fr = new FileReader();
+        fr.onload = () => res(fr.result);
+        fr.onerror = () => rej(new Error('FileReader 失败：' + (fr.error && fr.error.message)));
+        fr.readAsText(blob);
+      } catch (e2) { rej(e); }
+    }));
+  }
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = () => rej(new Error('FileReader 失败'));
+    fr.readAsText(blob);
+  });
+}
+
+/**
+ * 把 MTL 解析后 MaterialCreator 内部已构造的"待加载"贴图，用 fileMap（blobURL）重新加载并替换
+ *
+ *  为什么需要：makeMapTextureLoader 只替换 MTLLoader 自己的 loader.textureLoader；但 MaterialCreator
+ *  在 parse 内部创建时用的是它自己持有的 textureLoader 引用，**并不走 wrapper** → map_Kd tex.jpg 永远
+ *  找不到 → m.map 是无效 Texture（image.src 是伪 URL）→ 实际贴图从未生效。
+ *  修法：parse 完成后遍历所有 materials，把每张"待加载"贴图的 image.src 解析出文件名，从 fileMap 找到
+ *  对应 blobURL，用 fileMap 的 TextureLoader 异步 load 并替换原 mat[slot]。
+ */
+function remapMtlTexturesFromFileMap(mc, fileMap) {
+  if (!mc || !mc.materials || !fileMap || !fileMap.size) return Promise.resolve();
+  const slots = ['map', 'map_Kd', 'map_Ks', 'map_Ka', 'map_Ke', 'map_bump', 'map_normalMap'];
+  const promises = [];
+  for (const mat of Object.values(mc.materials)) {
+    if (!mat) continue;
+    for (const slot of slots) {
+      const tex = mat[slot];
+      if (!tex || !tex.image) continue;
+      const src = tex.image.src || (tex.image.currentSrc) || '';
+      if (!src) continue;
+      let fn = '';
+      try { fn = decodeURIComponent(src.split('/').pop().split('?')[0] || ''); } catch (_) { fn = src.split('/').pop(); }
+      fn = fn.toLowerCase();
+      if (!fn) continue;
+      const blobUrl = fileMap.get(fn);
+      if (!blobUrl) continue;
+      const tl = makeMapTextureLoader(fileMap);
+      promises.push(new Promise((res) => {
+        tl.load(blobUrl, (nt) => {
+          nt.wrapS = THREE.ClampToEdgeWrapping; nt.wrapT = THREE.ClampToEdgeWrapping;
+          nt.minFilter = THREE.LinearFilter; nt.magFilter = THREE.LinearFilter;
+          mat[slot] = nt;
+          mat.needsUpdate = true;
+          res();
+        }, undefined, () => res());   // 单张贴图失败不阻断整体
+      }));
+    }
+  }
+  return Promise.all(promises);
+}
+
+/** 叠加专用：异步解析 MTL 并把贴图改走 fileMap（同步返回 creators，调用方需 await） */
+function parseMtlTextForOverlay(mtlText, fileMap) {
+  const materials = parseMtlText(mtlText, { fileMap });
+  const texReady = Promise.all([
+    remapMtlTexturesFromFileMap(materials, fileMap),
+    forceReloadMtlTextures(materials, fileMap),
+  ]).then(() => {});
+  return { materials, texReady };
+}
+
+/**
+ * 兜底：parseMtlText 后强制再扫一遍材质，把每张贴图的 image.src 真正指向 fileMap 里的 blobURL，
+ * 并 await 图像加载完成。makeMapTextureLoader(addHandler 注入) 在某些 Three/浏览器版本上仍可能让 MaterialCreator
+ * 走了默认 TextureLoader 子路径，本兜底保证贴图最终落到 GPU。
+ */
+function forceReloadMtlTextures(materials, fileMap) {
+  if (!materials || !materials.materials) return Promise.resolve();
+  const slots = ['map', 'map_Kd', 'map_Ks', 'map_Ka', 'map_Ke', 'map_bump', 'map_normalMap'];
+  const tasks = [];
+  for (const mat of Object.values(materials.materials)) {
+    if (!mat) continue;
+    for (const slot of slots) {
+      const tex = mat[slot];
+      if (!tex) continue;
+      const cur = (tex.image && (tex.image.src || tex.image.currentSrc)) || '';
+      const want = (function () {
+        const fn = String(cur).split('/').pop().split('\\').pop().split('?')[0].toLowerCase();
+        return fn ? fileMap.get(fn) : null;
+      })();
+      if (!want) continue;
+      if (cur === want && tex.image && tex.image.complete && tex.image.naturalWidth > 0) continue;   // 已就绪
+      tasks.push(new Promise((res) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function () {
+          tex.image = img;
+          tex.needsUpdate = true;
+          mat.needsUpdate = true;
+          res();
+        };
+        img.onerror = function () { res(); };
+        img.src = want;
+      }));
+    }
+  }
+  return Promise.all(tasks);
+}
+
 /** 本地贴图加载器：按文件名从 FileMap(blobURL) 取；缺失则返回占位纹理避免报错中断 */
 function makeMapTextureLoader(fileMap) {
+  // 直接 new TextureLoader 仅作"包"用（manager.addHandler 必须传一个 loader 实例），
+  // 但 .load 完全自实现：命中 fileMap 时手写 HTMLImageElement + onload + 包成 Texture 替换
   const tl = new THREE.TextureLoader();
-  const orig = tl.load.bind(tl);
   tl.load = function (url, onLoad, onProgress, onError) {
-    const name = url.split('/').pop().split('\\').pop().split('?')[0].toLowerCase();
-    const blob = fileMap.get(name);
-    if (blob) return orig(blob, onLoad, onProgress, onError);
+    const name = String(url).split('/').pop().split('\\').pop().split('?')[0].toLowerCase();
+    const src = fileMap.get(name);
     const tex = new THREE.Texture();
     tex.needsUpdate = true;
-    if (onLoad) onLoad(tex);
+    if (!src) { if (onLoad) onLoad(tex); return tex; }
+    // 自实现：直接走 Image 加载，避免 TextureLoader 在异步链中可能跳过 image 状态
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function () {
+      tex.image = img;
+      tex.needsUpdate = true;
+      if (onLoad) onLoad(tex);
+    };
+    img.onerror = function () {
+      console.warn('[makeMapTextureLoader] 图片加载失败：', name);
+      if (onLoad) onLoad(tex);             // 即使失败仍给空 tex，不阻断 MaterialCreator 流程
+      if (onError) onError(new Error('img load failed: ' + name));
+    };
+    img.src = src;
     return tex;
   };
   return tl;
@@ -3557,10 +4301,13 @@ function setTopProjectName(name) {
     el.textContent = name;
     el.classList.remove('empty');
     el.title = name;
+    // 同步浏览器标签标题：让用户一眼看到是哪个模型
+    document.title = name + ' · ODM Viewer';
   } else {
     el.textContent = '未选择项目';
     el.classList.add('empty');
     el.title = '';
+    document.title = 'ODM Viewer';
   }
 }
 
@@ -3594,9 +4341,13 @@ function setTool(tool) {
   if (tool === 'distance') document.getElementById('btnDistance').classList.add('active');
   if (tool === 'area')     document.getElementById('btnArea').classList.add('active');
   if (tool === 'point')    document.getElementById('btnPoint').classList.add('active');
+  if (tool === 'flatten')  document.getElementById('btnFlatten').classList.add('active');
+  // 离开压平工具时清理选区标记与浮窗
+  if (tool !== 'flatten') { clearFlattenSelection(); const _fb = document.getElementById('flattenDialog'); if (_fb) _fb.classList.remove('active'); }
 
   document.body.classList.toggle('tool-active', tool !== 'none');
   document.body.classList.toggle('tool-area', tool === 'area');
+  document.body.classList.toggle('tool-flatten', tool === 'flatten');
 
   if (tool === 'none') {
     setStatus('');
@@ -3609,6 +4360,17 @@ function setTool(tool) {
   } else if (tool === 'point') {
     const gpsHint = (currentProject && currentProject.originGps) ? '（已自动获取基准，可显示 WGS84）' : '（未检测到 metadata.xml，仅显示模型坐标）';
     setStatus('打点模式：单击放置并继续（点1、点2…）；双击落点后立即退出' + gpsHint);
+  } else if (tool === 'flatten') {
+    setStatus('地形压平：连续点击地面取点画选区（≥3 点），双击闭合并压平；浮窗不关闭，可继续框下一块，改「高程」实时调整压平高度');
+    const _fb = document.getElementById('flattenDialog'); if (_fb) _fb.classList.add('active');
+    // 重新进入工具时若上次是最小化状态，自动还原展开（否则只看到一条标题栏，像是没打开）
+    const _fp = _fb && _fb.querySelector('.flat-panel');
+    if (_fp && _fp.classList.contains('minimized')) {
+      _fp.classList.remove('minimized');
+      const _mb = document.getElementById('btnFlattenMin');
+      if (_mb) { _mb.textContent = '—'; _mb.title = '最小化'; _mb.style.color = ''; }
+    }
+    renderFlattenEditHandles();   // 重新进入工具时，恢复显示上次选中块的轮廓点线
   }
 }
 
@@ -3699,6 +4461,17 @@ function drawCropLine() {
   scene.add(cropLine);
 }
 
+/** 射线拾取目标：主模型 + 所有可见的叠加模型（newODM）——让测量 / 打点 / 裁剪也能作用到叠加模型上。
+ *  叠加模型与主模型同处一个世界坐标系，测到的点可直接交给 modelToWGS84 换算经纬度。 */
+function rayPickTargets() {
+  const t = [];
+  if (currentModel) t.push(currentModel);
+  for (let i = 0; i < overlayModelRoots.length; i++) {
+    if (overlayModelRoots[i] && overlayModelRoots[i].visible) t.push(overlayModelRoots[i]);
+  }
+  return t;
+}
+
 /** 裁剪：单击在模型表面（或地面）取点，加入选区并刷新轮廓线 */
 function addCropPoint(event) {
   const rect = renderer.domElement.getBoundingClientRect();
@@ -3706,7 +4479,7 @@ function addCropPoint(event) {
   mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
   let p = null;
-  const ix = raycaster.intersectObject(currentModel, true);
+  const ix = raycaster.intersectObjects(rayPickTargets(), true);
   if (ix.length > 0) {
     p = ix[0].point.clone();
   } else {
@@ -3925,6 +4698,14 @@ function onPointerUpMeasure(e) {
     if (draggingPoint.kind === 'point') {
       updatePointResultItem(draggingPoint.pt);   // 同步结果列表经纬度文字
       saveProjectState();                         // 持久化新位置（刷新后仍保留）
+    } else if (draggingPoint.kind === 'flatten') {
+      // 压平轮廓调整结束：真正重压地形 + 刷新覆盖层，然后保存（拖动过程中只改了点线）
+      const _oi = draggingPoint.opIndex;
+      const _op = flattenOps[_oi];
+      rebuildFlatten();              // 还原原始几何 → 按新轮廓重放全部压平记录
+      renderFlattenEditHandles();    // 轮廓点线按最终地形重画（点位已贴合新地面）
+      saveProjectState();            // 持久化新轮廓（刷新后仍保留）
+      if (dragMoved && _op) setStatus('✏️ 压平' + (_oi + 1) + ' 轮廓已更新（' + _op.poly.length + ' 个点），已重新压平并保存');
     } else {
       focusedPoint = draggingPoint;   // 单击或拖拽后保持聚焦（黄色高亮）
       setFocusHighlight();
@@ -3950,6 +4731,7 @@ function onPointerUpMeasure(e) {
   if (isDbl) {
     _lastClickTime = 0;                   // 复位，避免三连击误判
     if (isCropping) { finishCrop(); }
+    else if (currentTool === 'flatten') { closeFlattenPolygon(); }
     else if (currentTool === 'point') {
       // 双击打点：第一击已在上一击的单击分支落好点，第二击仅结束打点模式，
       // 不再落第二个重叠点（避免同一位置产生重复图钉）
@@ -3977,7 +4759,8 @@ function onPointerUpMeasure(e) {
  */
 function onPointerDownPick(e) {
   if (e.button !== 0) return;
-  if (currentTool !== 'none') return;   // 测量进行中不拦截
+  // 测量进行中不拦截；压平工具开启（浮窗在）时例外——需要拖动/插入压平轮廓点
+  if (currentTool !== 'none' && currentTool !== 'flatten') return;
   if (!currentModel) return;
 
   const hit = pickMarkerAt(e);
@@ -4013,6 +4796,34 @@ function onPointerDownPick(e) {
       try { renderer.domElement.setPointerCapture(e.pointerId); } catch (_) {}
       e.stopPropagation();
       setStatus('已插入新点，可继续拖动调整位置');
+    } else if (hit.kind === 'flatten-mid') {
+      // 压平轮廓的边中点：在该边中间插入一个新点，并立即进入拖拽（与面积测量一致）
+      const opIndex = hit.opIndex;
+      const op = flattenOps[opIndex];
+      if (!op || !currentModel) return;
+      const wp = op.poly.map(p => currentModel.localToWorld(new THREE.Vector3(p[0], p[1], p[2])));
+      const n = wp.length;
+      const edgeIndex = (hit.edgeIndex | 0);
+      const a = wp[edgeIndex], b = wp[(edgeIndex + 1) % n];
+      const mid = a.clone().add(b).multiplyScalar(0.5);      // 新点先落在该边中点
+      const insertIdx = edgeIndex + 1;
+      const lp = currentModel.worldToLocal(mid.clone());      // 存回模型局部坐标
+      op.poly.splice(insertIdx, 0, [+lp.x.toFixed(4), +lp.y.toFixed(4), +lp.z.toFixed(4)]);
+      renderFlattenEditHandles();    // 重画 N+1 个角点 / 闭合边 / 新中点
+      rebuildFlattenOverlays();      // 覆盖层形状同步跟着变
+      draggingPoint = { kind: 'flatten', opIndex, index: insertIdx };
+      dragMoved = false;
+      controls.enabled = false;
+      try { renderer.domElement.setPointerCapture(e.pointerId); } catch (_) {}
+      e.stopPropagation();
+      setStatus('已在该边插入新点（共 ' + op.poly.length + ' 个点），可继续拖动调整位置');
+    } else if (hit.kind === 'flatten') {
+      // 压平轮廓角点：按住拖动即可改形状（松手后自动重压地形并保存）
+      draggingPoint = { kind: 'flatten', opIndex: hit.opIndex, index: hit.index };
+      dragMoved = false;
+      controls.enabled = false;      // 拖点时禁止旋转视角
+      try { renderer.domElement.setPointerCapture(e.pointerId); } catch (_) {}
+      e.stopPropagation();
     } else {
       // 先取消旧焦点（若指向别的测点），再聚焦当前点
       if (focusedPoint && focusedPoint.path !== hit.path) clearFocusHighlight();
@@ -4041,7 +4852,7 @@ function onPointerMoveMeasure(e) {
   mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
 
   raycaster.setFromCamera(mouse, camera);
-  const ix = raycaster.intersectObject(currentModel, true);
+  const ix = raycaster.intersectObjects(rayPickTargets(), true);   // 含叠加模型
   if (ix.length === 0) return;          // 未命中模型 → 不更新（避免悬空）
 
   const p = ix[0].point.clone();
@@ -4061,6 +4872,18 @@ function onPointerMoveMeasure(e) {
     scheduleOcclusionRefresh();
     return;
   }
+  if (draggingPoint.kind === 'flatten') {
+    // 压平轮廓角点拖拽：拖动中只更新轮廓点线（轻量、流畅），地形重压留到松手时做
+    const op = flattenOps[draggingPoint.opIndex];
+    if (!op || !currentModel) return;
+    if (viewMode === '2d') p.y = modelBottomY();          // 2D 俯视同样拍平，保持平面语义
+    const lp = currentModel.worldToLocal(p.clone());       // 存回模型局部坐标
+    op.poly[draggingPoint.index] = [+lp.x.toFixed(4), +lp.y.toFixed(4), +lp.z.toFixed(4)];
+    dragMoved = true;
+    renderFlattenEditHandles();    // 轮廓的点与边线实时跟随鼠标
+    rebuildFlattenOverlays();      // 色块/模糊覆盖层形状同步跟着变
+    return;
+  }
   // 2D 俯视下拖动测点：同样拍平到底部，保持平面测量语义（不会拖出高差）
   if (viewMode === '2d') p.y = modelBottomY();
   draggingPoint.path.points[draggingPoint.index].copy(p);
@@ -4078,9 +4901,9 @@ function handleCanvasPick(event) {
   mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
   mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
 
-  // 射线拾取：只对模型，避免测点穿透到模型之外
+  // 射线拾取：主模型 + 叠加模型，避免测点穿透到模型之外（叠加模型也能测）
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObject(currentModel, true);
+  const intersects = raycaster.intersectObjects(rayPickTargets(), true);
   if (intersects.length === 0) {
     setStatus('未命中模型表面，请直接点击模型');
     return;
@@ -4098,6 +4921,7 @@ function handleCanvasPick(event) {
   if (currentTool === 'distance')      addDistancePoint(point);
   else if (currentTool === 'area')     addAreaPoint(point);
   else if (currentTool === 'point')    addPoint(point, normal);
+  else if (currentTool === 'flatten')  addFlattenPoint(point);
 }
 
 /** 双击结束当前测量：以双击点为测量最终点，然后保存/清理 */
@@ -4415,6 +5239,17 @@ function collectAllMarkers() {
   savedPoints.forEach((pt, i) => {
     if (pt.sprite && pt.sprite.parent) list.push({ kind: 'point', pt, index: i, marker: pt.sprite });
   });
+  // 压平轮廓编辑点：角点（拖动改形状）+ 每边中点（点击插入新点），仅当列表里选中了某块时才存在
+  if (flattenSelectedIdx >= 0 && flattenOps[flattenSelectedIdx]) {
+    flattenEditObjects.forEach(m => {
+      if (!m || !m.userData) return;
+      if (m.userData.kind === 'flatten') list.push({ kind: 'flatten', opIndex: m.userData.opIndex, index: m.userData.index, marker: m });
+    });
+    flattenEditMidMarkers.forEach(m => {
+      if (!m || !m.userData) return;
+      list.push({ kind: 'flatten-mid', opIndex: m.userData.opIndex, edgeIndex: m.userData.edgeIndex, marker: m });
+    });
+  }
   return list;
 }
 
@@ -4435,7 +5270,9 @@ function pickMarkerAt(e) {
     const sx = (v.x * 0.5 + 0.5) * rect.width;
     const sy = (-v.y * 0.5 + 0.5) * rect.height;
     const d = Math.hypot(sx - mx, sy - my);
-    if (it.kind === 'midpoint') {
+    // 中点类（面积中点 + 压平边中点）：sprite 更小，用更大的拾取阈值，且只在没命中主点时兜底
+    const isMid = (it.kind === 'midpoint' || it.kind === 'flatten-mid');
+    if (isMid) {
       if (d < bestMidDist) { bestMidDist = d; bestMid = it; }
     } else {
       if (d < bestMeasureDist) { bestMeasureDist = d; bestMeasure = it; }
@@ -4728,6 +5565,524 @@ function closeAreaPath(path) {
 }
 
 // ============================================================
+//  地形压平工具：多边形框选一块地 → 把选区内地形顶点压平到基准面
+//  场景：选一块空地，把土堆/杂草/小车等压成平地，再在上面摆自建模型
+//  基准：最低点（铲平到区域内最低处）/ 自定义高度（手填高程）
+//  实现：复用面积测量的点选/闭合；XZ 多边形逐顶点判定（pointInPolygonXZ）
+// ============================================================
+let flattenPoly = [];          // 已选点（世界坐标 {x,y,z}），只用 x/z 做选区
+let flattenMarkers = [];       // 场景里的标记物（点 + 预览线），取消/完成后清理
+let flattenUndoStack = [];     // 撤销快照栈：{ targets:[mesh], snapshot:[{mi,idx,x,y,z}] }
+let flattenLastPoly = null;    // 最近一块选区的世界坐标 poly（用于实时改高程）
+let flattenLastOpIndex = -1;   // flattenLastPoly 对应的 flattenOps 下标（实时改高程时同步更新该记录）
+let flattenOps = [];           // 持久化记录：{ poly:[[x,y,z]...模型局部坐标], base:'min'|'custom', h:number }
+let flattenBase = 'min';       // 'min' | 'custom'（用于「下一块」默认基准）
+let flattenCustomH = 0;        // 自定义高程（米，用于「下一块」默认基准）
+let flattenPristine = null;    // 压平前的原始几何快照（位置+法线），用于整体重建
+let flattenSelectedIdx = -1;   // 当前在列表里选中的压平项下标（高亮用）
+function addFlattenPoint(point) {
+  if (flattenPoly.length === 0) {
+    flattenLastPoly = null;               // 开始画新的一块 → 实时编辑目标清空
+    clearFlattenEditHandles();            // 同时隐藏上一块的轮廓编辑点线，避免与新选点混在一起
+  }
+  flattenPoly.push({ x: point.x, y: point.y, z: point.z });
+  const marker = createPointMarker(point, null, flattenPoly.length - 1);
+  measurementGroup.add(marker);
+  flattenMarkers.push(marker);
+  if (flattenPoly.length >= 2) {
+    const a = flattenPoly[flattenPoly.length - 2];
+    const b = flattenPoly[flattenPoly.length - 1];
+    const ret = createLine(new THREE.Vector3(a.x, a.y, a.z), new THREE.Vector3(b.x, b.y, b.z), true);
+    measurementGroup.add(ret.line);
+    flattenMarkers.push(ret.line);
+  }
+}
+
+function clearFlattenSelection() {
+  if (typeof measurementGroup !== 'undefined' && measurementGroup) {
+    flattenMarkers.forEach(o => { if (o && o.parent) o.parent.remove(o); });
+  }
+  flattenMarkers = [];
+  flattenPoly = [];
+  clearFlattenEditHandles();   // 退出工具 / 闭合选区时，清掉轮廓编辑点线
+}
+
+/** 抓取当前模型「压平前」的原始几何（位置+法线），仅抓一次；之后任何编辑都先还原再整体重放 */
+function captureFlattenPristine() {
+  if (flattenPristine || !currentModel) return;
+  flattenPristine = [];
+  currentModel.traverse(o => {
+    if (o.isMesh && o.geometry && o.geometry.attributes.position) {
+      const p = o.geometry.attributes.position;
+      const n = o.geometry.attributes.normal;
+      flattenPristine.push({
+        mesh: o,
+        pos: new Float32Array(p.array),
+        norm: n ? new Float32Array(n.array) : null
+      });
+    }
+  });
+}
+
+/** 还原到压平前原始几何 */
+function restoreFlattenPristine() {
+  if (!flattenPristine) return;
+  flattenPristine.forEach(rec => {
+    const p = rec.mesh.geometry.attributes.position;
+    if (p.array.length === rec.pos.length) { p.array.set(rec.pos); p.needsUpdate = true; }
+    const n = rec.mesh.geometry.attributes.normal;
+    if (n && rec.norm && n.array.length === rec.norm.length) { n.array.set(rec.norm); n.needsUpdate = true; }
+  });
+}
+
+/** 整体重建：还原原始几何 → 按列表顺序重放所有压平记录（任一记录改高度/删记录后调用） */
+function rebuildFlatten() {
+  captureFlattenPristine();
+  restoreFlattenPristine();
+  let total = 0;
+  flattenCapY = [];
+  flattenOps.forEach((op, idx) => {
+    if (!op || !Array.isArray(op.poly) || op.poly.length < 3) { flattenCapY[idx] = 0; return; }
+    const wp = op.poly.map(p => currentModel.localToWorld(new THREE.Vector3(p[0], p[1], p[2])));
+    const baseH = (op.base === 'custom') ? (op.h || 0) : null;
+    const res = applyFlattenToMeshes(wp, baseH);
+    total += res.moved;
+    flattenCapY[idx] = res.targetY;   // 缓存压平面的世界 Y，供着色覆盖层使用
+  });
+  rebuildFlattenOverlays();
+  return total;
+}
+
+/** 重建压平着色覆盖层：每块压平区域正上方画一张「屏幕空间高斯模糊」面片，直接把该区域地形材质/贴图模糊显示 */
+function rebuildFlattenOverlays() {
+  if (!flattenOverlayGroup) {
+    flattenOverlayGroup = new THREE.Group();
+    flattenOverlayGroup.name = '__FLATTEN_OVERLAY__';
+    scene.add(flattenOverlayGroup);
+  }
+  while (flattenOverlayGroup.children.length) {
+    const c = flattenOverlayGroup.children.pop();
+    if (c.geometry) c.geometry.dispose();
+    if (c.material) c.material.dispose();
+  }
+  if (!currentModel) return;
+  const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+  if (!flattenBlurRT) {
+    flattenBlurRT = new THREE.WebGLRenderTarget(size.x, size.y, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true });
+  } else if (flattenBlurRT.width !== size.x || flattenBlurRT.height !== size.y) {
+    flattenBlurRT.setSize(size.x, size.y);
+  }
+  flattenBlurRT.texture.colorSpace = THREE.SRGBColorSpace;   // 修复：同上，模糊 RT 设为 sRGB，避免模糊区域偏暗/发黑
+  flattenOps.forEach((op, idx) => {
+    if (!op || !Array.isArray(op.poly) || op.poly.length < 3) return;
+    const capY = flattenCapY[idx];
+    if (capY == null) return;
+    const wp = op.poly.map(p => currentModel.localToWorld(new THREE.Vector3(p[0], p[1], p[2])));
+    const shape = new THREE.Shape();
+    wp.forEach((p, k) => { if (k === 0) shape.moveTo(p.x, p.z); else shape.lineTo(p.x, p.z); });
+    shape.closePath();
+    const geo = new THREE.ShapeGeometry(shape);
+    geo.rotateX(Math.PI / 2);            // XY 平面 → XZ 平面（水平铺在地面上）
+    geo.translate(0, capY + 0.02, 0);   // 抬高一点点，避免与压平后的地面 z-fighting
+    const mode = (op.mode === 'blur') ? 'blur' : 'color';
+    const opa = (typeof op.opacity === 'number' && op.opacity >= 0 && op.opacity <= 1) ? op.opacity : DEFAULT_FLATTEN_OPACITY;
+    let mat;
+    if (mode === 'blur') {
+      const blur = (typeof op.blur === 'number' && op.blur >= 0 && op.blur <= 1) ? op.blur : DEFAULT_FLATTEN_BLUR;
+      mat = new THREE.ShaderMaterial({
+        uniforms: {
+          tDiffuse: { value: flattenBlurRT.texture },
+          uResolution: { value: new THREE.Vector2(size.x, size.y) },
+          uStrength: { value: blur },
+          uOpacity: { value: 1.0 }   // 模糊模式强制满不透明：直接显示「原图模糊」，不与透明度混合（避免透明+模糊发灰的怪异感）
+        },
+        vertexShader: FLATTEN_BLUR_VS,
+        fragmentShader: FLATTEN_BLUR_FS,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
+    } else {
+      const col = (op.color && /^#[0-9a-fA-F]{6}$/.test(op.color)) ? op.color : DEFAULT_FLATTEN_COLOR;
+      mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(col), transparent: true, opacity: opa, side: THREE.DoubleSide, depthWrite: false });
+    }
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.renderOrder = 3;
+    mesh.userData.opIndex = idx;
+    flattenOverlayGroup.add(mesh);
+  });
+}
+
+/** 单独改某块压平覆盖层的颜色（色块模式）：只更新对应 mesh 的材质颜色（不动几何、不重渲染列表，保留焦点） */
+function setFlattenOpColor(i, color) {
+  if (i < 0 || i >= flattenOps.length) return;
+  flattenOps[i].color = color;
+  if (flattenOverlayGroup) {
+    const mesh = flattenOverlayGroup.children.find(c => c.userData && c.userData.opIndex === i);
+    if (mesh && mesh.material && mesh.material.color) mesh.material.color.set(color);
+  }
+}
+
+/** 切换某块压平覆盖层的显示模式（color 色块 / blur 模糊）：材质类型变了，必须重建覆盖层 */
+function setFlattenOpMode(i, mode) {
+  if (i < 0 || i >= flattenOps.length) return;
+  flattenOps[i].mode = (mode === 'blur') ? 'blur' : 'color';
+  rebuildFlattenOverlays();
+}
+
+/** 单独改某块压平的模糊强度：只更新该覆盖层的着色器 uniform（不动几何、不重渲染列表，保留焦点） */
+function setFlattenOpBlur(i, blur) {
+  if (i < 0 || i >= flattenOps.length) return;
+  flattenOps[i].blur = (typeof blur === 'number' && blur >= 0 && blur <= 1) ? blur : DEFAULT_FLATTEN_BLUR;
+  if (flattenOverlayGroup) {
+    const mesh = flattenOverlayGroup.children.find(c => c.userData && c.userData.opIndex === i);
+    if (mesh && mesh.material && mesh.material.uniforms) mesh.material.uniforms.uStrength.value = flattenOps[i].blur;
+  }
+}
+
+/** 单独改某块压平覆盖层的不透明度：色块模式改 MeshBasicMaterial.opacity，模糊模式改 shader uOpacity（均不重建列表，保留焦点） */
+function setFlattenOpOpacity(i, opacity) {
+  if (i < 0 || i >= flattenOps.length) return;
+  flattenOps[i].opacity = (typeof opacity === 'number' && opacity >= 0 && opacity <= 1) ? opacity : DEFAULT_FLATTEN_OPACITY;
+  if (flattenOverlayGroup) {
+    const mesh = flattenOverlayGroup.children.find(c => c.userData && c.userData.opIndex === i);
+    if (mesh && mesh.material) {
+      if (mesh.material.uniforms && mesh.material.uniforms.uOpacity) mesh.material.uniforms.uOpacity.value = flattenOps[i].opacity;
+      else if ('opacity' in mesh.material) mesh.material.opacity = flattenOps[i].opacity;
+    }
+  }
+}
+
+/**
+ * 把选区内顶点 Y 压到 targetY（世界坐标），写回局部坐标。
+ * record=true 时把本次操作压入撤销栈（普通压平）；false 时只改几何不进栈（实时改高程用）。
+ * 返回 { moved, targetY }。
+ */
+/** 加载新模型前清空压平状态（避免上一个模型的 pristine 快照串味） */
+function resetFlattenState() {
+  flattenOps = [];
+  flattenPristine = null;
+  flattenSelectedIdx = -1;
+  flattenLastPoly = null;
+  flattenLastOpIndex = -1;
+  flattenPoly = [];
+  flattenMarkers = [];
+  flattenUndoStack = [];
+  flattenCapY = [];
+  if (typeof clearFlattenEditHandles === 'function') clearFlattenEditHandles();   // 清掉轮廓编辑点线
+  if (flattenOverlayGroup) {
+    while (flattenOverlayGroup.children.length) {
+      const c = flattenOverlayGroup.children.pop();
+      if (c.geometry) c.geometry.dispose();
+      if (c.material) c.material.dispose();
+    }
+  }
+  const list = document.getElementById('flattenList');
+  if (list) list.innerHTML = '';
+  const cnt = document.getElementById('flattenCount');
+  if (cnt) cnt.textContent = '0 块';
+}
+
+function applyFlattenToMeshes(poly, baseH) {
+  if (!currentModel) return { moved: 0, targetY: 0 };
+  currentModel.updateMatrixWorld(true);
+  const targets = [];
+  currentModel.traverse(o => { if (o.isMesh && o.geometry && o.geometry.attributes.position) targets.push(o); });
+  const _v = new THREE.Vector3();
+  // pass 1：找选区内最低世界 Y（用于 'min' 基准）
+  let minY = Infinity;
+  targets.forEach(m => {
+    const pos = m.geometry.attributes.position;
+    const mw = m.matrixWorld;
+    for (let i = 0; i < pos.count; i++) {
+      _v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mw);
+      if (pointInPolygonXZ({ x: _v.x, z: _v.z }, poly) && _v.y < minY) minY = _v.y;
+    }
+  });
+  const targetY = (baseH != null) ? baseH : (minY === Infinity ? 0 : minY);
+  // pass 2：把选区内顶点 Y 设为 targetY（世界），写回局部坐标
+  let moved = 0;
+  targets.forEach(m => {
+    const pos = m.geometry.attributes.position;
+    const mw = m.matrixWorld;
+    const inv = mw.clone().invert();
+    for (let i = 0; i < pos.count; i++) {
+      const ox = pos.getX(i), oy = pos.getY(i), oz = pos.getZ(i);
+      _v.set(ox, oy, oz).applyMatrix4(mw);
+      if (pointInPolygonXZ({ x: _v.x, z: _v.z }, poly)) {
+        _v.y = targetY;
+        _v.applyMatrix4(inv);
+        pos.setXYZ(i, _v.x, _v.y, _v.z);
+        moved++;
+      }
+    }
+    pos.needsUpdate = true;
+    if (m.geometry.attributes.normal) m.geometry.computeVertexNormals();
+    if (m.geometry.boundsTree) m.geometry.boundsTree = null;   // 清旧的 BVH，拾取回退到暴力遍历
+    m.geometry.computeBoundingBox();
+    m.geometry.computeBoundingSphere();
+  });
+  return { moved, targetY };
+}
+
+/** 更新浮窗里的实时压平高度读数 */
+function updateFlattenReadout(moved, targetY) {
+  const el = document.getElementById('flattenHeightInfo');
+  if (!el) return;
+  const baseTxt = (flattenBase === 'custom') ? ('自定义高程 ' + (+targetY).toFixed(3) + ' m') : ('区域最低点 ' + (+targetY).toFixed(3) + ' m');
+  el.textContent = '已压平 ' + moved + ' 个顶点 → ' + baseTxt + '（改高程实时调整）';
+}
+
+function closeFlattenPolygon() {
+  if (flattenPoly.length < 3) { setStatus('压平选区至少需 3 个点，请继续点击地面'); return; }
+  const poly = flattenPoly;
+  const baseH = (flattenBase === 'custom') ? flattenCustomH : null;
+  captureFlattenPristine();                       // 第一次压平前抓原始几何（此后整体重建都基于它）
+  const r = applyFlattenToMeshes(poly, baseH);
+  flattenLastPoly = poly.map(p => ({ x: p.x, y: p.y, z: p.z }));   // 记录本块世界坐标选区
+  // 持久化记录：转成模型局部坐标，刷新后按相同变换重放即可得到一致结果
+  if (currentModel) {
+    const localPoly = poly.map(p => {
+      const v = currentModel.worldToLocal(new THREE.Vector3(p.x, p.y, p.z));
+      return [+v.x.toFixed(4), +v.y.toFixed(4), +v.z.toFixed(4)];
+    });
+    flattenOps.push({ poly: localPoly, base: flattenBase, h: (flattenBase === 'custom') ? flattenCustomH : 0, mode: 'color', color: nextFlattenColor(), blur: DEFAULT_FLATTEN_BLUR, opacity: DEFAULT_FLATTEN_OPACITY });
+    flattenCapY[flattenOps.length - 1] = r.targetY;   // 记录本块压平面的世界 Y，供实时着色覆盖层使用（之前漏填导致改色要等重进才生效）
+    flattenLastOpIndex = flattenOps.length - 1;   // 记住本块对应的记录
+    flattenSelectedIdx = flattenOps.length - 1;   // 新块自动选中（列表高亮）
+  }
+  clearFlattenSelection();   // 清掉选点标记，但【不退出工具】：浮窗保持打开，可继续框下一块
+  rebuildFlattenOverlays();  // 实时建/刷新着色覆盖层（关键：之前 closeFlattenPolygon 只压了地形没建覆盖层）
+  renderFlattenList();       // 把新块加入「已压平列表」
+  renderFlattenEditHandles(); // 新块已选中 → 立刻在模型上显示它的轮廓点线（可直接调点/加点）
+  updateFlattenReadout(r.moved, r.targetY);
+  const btxt = (flattenBase === 'custom') ? ('自定义 ' + flattenCustomH + ' m') : '区域最低点';
+  setStatus('✅ 已压平第 ' + flattenOps.length + ' 块（' + r.moved + ' 顶点，基准=' + btxt + '），已加入列表；可继续框下一块');
+}
+
+/**
+ * 单独设置某一条压平的高度（或默认最低点）：改记录 → 整体重建 → 重渲染列表 → 更新读数。
+ * 满足「每个压平能单独设置高度、或默认高度」。
+ */
+function setFlattenOpHeight(i, base, h, doRender) {
+  if (i < 0 || i >= flattenOps.length) return;
+  flattenOps[i].base = base;
+  flattenOps[i].h = (base === 'custom') ? h : 0;
+  rebuildFlatten();
+  if (doRender !== false) renderFlattenList();   // 仅结构变化（切换默认/自定义、增删）时才重建列表
+  // 读数（对第 i 块再压一次取 targetY，幂等）
+  const op = flattenOps[i];
+  const wp = op.poly.map(p => currentModel.localToWorld(new THREE.Vector3(p[0], p[1], p[2])));
+  const r = applyFlattenToMeshes(wp, (op.base === 'custom') ? (op.h || 0) : null);
+  updateFlattenReadout(r.moved, r.targetY);
+}
+
+/** 删除某一条压平：从列表移除 → 整体重建（其余块保持） */
+function deleteFlattenOp(i) {
+  if (i < 0 || i >= flattenOps.length) return;
+  flattenOps.splice(i, 1);
+  if (flattenSelectedIdx === i) flattenSelectedIdx = -1;
+  else if (flattenSelectedIdx > i) flattenSelectedIdx--;
+  flattenLastOpIndex = flattenOps.length - 1;
+  rebuildFlatten();
+  renderFlattenList();
+  renderFlattenEditHandles();   // 索引已重排，按新的选中项重画轮廓点线
+  setStatus('🗑 已删除压平 ' + (i + 1) + '，共剩 ' + flattenOps.length + ' 处（其余块保持不变）');
+}
+
+/** 选中列表里的某一条（高亮用）——只切换 class，不重建列表，否则正在输入的数字框会被销毁、无法连续打字 */
+function selectFlattenOp(i) {
+  flattenSelectedIdx = i;
+  const list = document.getElementById('flattenList');
+  if (!list) return;
+  list.querySelectorAll('.flat-item').forEach((el, idx) => {
+    if (idx === i) el.classList.add('selected');
+    else el.classList.remove('selected');
+  });
+  renderFlattenEditHandles();   // 选中即在模型上显示这块压平的轮廓点线（可拖动圆点 / 点中点加点）
+}
+
+/** 渲染「已压平列表」：压平1 / 压平2 …，每行可单独设默认或自定义高度、可删除 */
+function renderFlattenList() {
+  const list = document.getElementById('flattenList');
+  const cnt = document.getElementById('flattenCount');
+  if (!list) return;
+  if (cnt) cnt.textContent = flattenOps.length + ' 块';
+  list.innerHTML = '';
+  if (!flattenOps.length) {
+    const empty = document.createElement('div');
+    empty.className = 'flat-empty';
+    empty.textContent = '暂无压平记录';
+    list.appendChild(empty);
+    return;
+  }
+  flattenOps.forEach((op, i) => {
+    const isCustom = op.base === 'custom';
+    const sub = isCustom ? ('自定义 ' + (+op.h).toFixed(2) + ' m') : '区域最低点';
+    const item = document.createElement('div');
+    const mode = (op.mode === 'blur') ? 'blur' : 'color';
+    item.className = 'flat-item' + (i === flattenSelectedIdx ? ' selected' : '') + ' mode-' + mode;
+    item.dataset.idx = i;
+    const blur0 = (typeof op.blur === 'number') ? op.blur : DEFAULT_FLATTEN_BLUR;
+    const opa0 = (typeof op.opacity === 'number') ? op.opacity : DEFAULT_FLATTEN_OPACITY;
+    item.innerHTML =
+      '<div class="flat-item-head">' +
+        '<span class="flat-name">压平' + (i + 1) + '</span>' +
+        '<div class="flat-mode-btns">' +
+          '<button type="button" class="flat-mode-btn' + (mode === 'color' ? ' active' : '') + '" data-mode="color">色块</button>' +
+          '<button type="button" class="flat-mode-btn' + (mode === 'blur' ? ' active' : '') + '" data-mode="blur">模糊</button>' +
+        '</div>' +
+        '<span class="flat-sub">' + sub + '</span>' +
+        '<button class="flat-del" title="删除此压平">✕</button>' +
+      '</div>' +
+      '<div class="flat-item-ctrl">' +
+        '<label class="flat-radio"><input type="radio" name="fb' + i + '" value="min"' + (isCustom ? '' : ' checked') + '> 默认</label>' +
+        '<label class="flat-radio"><input type="radio" name="fb' + i + '" value="custom"' + (isCustom ? ' checked' : '') + '> 自定义</label>' +
+        '<input type="number" class="flat-h" step="any" value="' + (isCustom ? (+op.h) : 0) + '"' + (isCustom ? '' : ' disabled') + '> m' +
+        '<div class="flat-color-row"><input type="color" class="flat-color" value="' + ((op.color && /^#[0-9a-fA-F]{6}$/.test(op.color)) ? op.color : DEFAULT_FLATTEN_COLOR) + '" title="压平区域显示颜色"></div>' +
+        '<label class="flat-sl flat-blur-label">模糊<input type="range" class="flat-blur" min="0" max="1" step="0.05" value="' + blur0 + '" title="压平区域高斯模糊强度"><span class="flat-blur-val">' + Math.round(blur0 * 100) + '%</span></label>' +
+        '<label class="flat-sl flat-op-label">透明<input type="range" class="flat-opacity" min="0" max="1" step="0.05" value="' + opa0 + '" title="压平区域覆盖层不透明度"><span class="flat-op-val">' + Math.round(opa0 * 100) + '%</span></label>' +
+      '</div>';
+    item.querySelector('.flat-del').addEventListener('click', (e) => { e.stopPropagation(); deleteFlattenOp(i); });
+    item.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', () => {
+      const base = r.value;
+      const h = base === 'custom' ? (parseFloat(item.querySelector('.flat-h').value) || 0) : 0;
+      setFlattenOpHeight(i, base, h);
+    }));
+    item.querySelector('.flat-h').addEventListener('input', () => {
+      if (item.querySelector('input[type=radio]:checked').value !== 'custom') return;
+      const v = parseFloat(item.querySelector('.flat-h').value) || 0;
+      setFlattenOpHeight(i, 'custom', v, false); // 不重建列表，保留输入焦点，可连续打字
+      const sub = item.querySelector('.flat-sub');  // 同步更新该行副标题
+      if (sub) sub.textContent = '自定义 ' + v.toFixed(2) + ' m';
+    });
+    item.querySelector('.flat-blur').addEventListener('input', () => {
+      const v = parseFloat(item.querySelector('.flat-blur').value);
+      setFlattenOpBlur(i, isNaN(v) ? DEFAULT_FLATTEN_BLUR : v); // 改模糊强度只更新该覆盖层 uniform，不重建列表
+      const bv = item.querySelector('.flat-blur-val');
+      if (bv) bv.textContent = Math.round((isNaN(v) ? DEFAULT_FLATTEN_BLUR : v) * 100) + '%';
+    });
+    item.querySelector('.flat-opacity').addEventListener('input', () => {
+      const v = parseFloat(item.querySelector('.flat-opacity').value);
+      setFlattenOpOpacity(i, isNaN(v) ? DEFAULT_FLATTEN_OPACITY : v); // 改透明度只更新该覆盖层，不重建列表
+      const ov = item.querySelector('.flat-op-val');
+      if (ov) ov.textContent = Math.round((isNaN(v) ? DEFAULT_FLATTEN_OPACITY : v) * 100) + '%';
+    });
+    item.querySelector('.flat-color').addEventListener('input', () => {
+      setFlattenOpColor(i, item.querySelector('.flat-color').value); // 色块模式改色只更新材质，不重建列表
+    });
+    item.querySelectorAll('.flat-mode-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const m = btn.dataset.mode;
+        if (m === flattenOps[i].mode) return;
+        setFlattenOpMode(i, m); // 材质类型变了，重建覆盖层（不碰列表 DOM，焦点保留）
+        item.className = 'flat-item' + (i === flattenSelectedIdx ? ' selected' : '') + ' mode-' + (m === 'blur' ? 'blur' : 'color');
+        item.querySelectorAll('.flat-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+      });
+    });
+    item.addEventListener('click', () => selectFlattenOp(i));
+    list.appendChild(item);
+  });
+}
+
+// ============================================================
+//  压平轮廓编辑：选中列表里某块 → 在模型上显示它的点与边线
+//  交互与「面积测量」完全一致：
+//   - 角点圆点：按住拖动 → 该点跟随鼠标落到模型表面，形状实时变化
+//   - 每条边中点的虚线圆点：点一下 → 在该边插入一个新点，并可接着拖动摆放
+//  拖动中只更新轮廓点线（轻量，流畅）；松手后才重压地形（rebuildFlatten）并保存
+// ============================================================
+
+/** 清除轮廓编辑标记（角点 / 边线 / 中点辅助点） */
+function clearFlattenEditHandles() {
+  if (!measurementGroup) return;
+  flattenEditObjects.forEach(o => {
+    if (!o) return;
+    measurementGroup.remove(o);
+    o.traverse(child => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) child.material.forEach(m => { if (m.map) m.map.dispose(); m.dispose(); });
+        else { if (child.material.map) child.material.map.dispose(); child.material.dispose(); }
+      }
+    });
+  });
+  flattenEditObjects = [];
+  flattenEditMidMarkers = [];
+}
+
+/** 重画「当前选中块」的轮廓点线（数据源 = flattenOps[idx].poly，模型局部坐标） */
+function renderFlattenEditHandles() {
+  clearFlattenEditHandles();
+  if (!currentModel || !measurementGroup) return;
+  const i = flattenSelectedIdx;
+  if (i < 0 || i >= flattenOps.length) return;
+  const op = flattenOps[i];
+  if (!op || !Array.isArray(op.poly) || op.poly.length < 3) return;
+  if (flattenPoly.length > 0) return;   // 正在画新的选区 → 不显示，避免与当前选点重叠干扰
+  // 局部坐标 → 世界坐标（标记点画在世界空间，跟随模型变换）
+  const wp = op.poly.map(p => currentModel.localToWorld(new THREE.Vector3(p[0], p[1], p[2])));
+  const n = wp.length;
+  // 1) 角点（可拖动）
+  wp.forEach((p, k) => {
+    const mk = createPointMarker(p, null, k);
+    mk.userData = { kind: 'flatten', opIndex: i, index: k, sprite: mk.userData && mk.userData.sprite };
+    measurementGroup.add(mk);
+    flattenEditObjects.push(mk);
+  });
+  // 2) 闭合轮廓边（实线，与面积测量闭合多边形一致）
+  for (let k = 0; k < n; k++) {
+    const ret = createLine(wp[k], wp[(k + 1) % n], false);
+    measurementGroup.add(ret.line);
+    flattenEditObjects.push(ret.line);
+  }
+  // 3) 每边中点辅助点（点击 → 在该边中部插入一个新点）
+  for (let k = 0; k < n; k++) {
+    const a = wp[k], b = wp[(k + 1) % n];
+    const mid = a.clone().add(b).multiplyScalar(0.5);
+    const mm = createMidpointMarker(mid, null, k);
+    mm.userData = { kind: 'flatten-mid', opIndex: i, edgeIndex: k, sprite: mm.userData && mm.userData.sprite };
+    measurementGroup.add(mm);
+    flattenEditObjects.push(mm);
+    flattenEditMidMarkers.push(mm);
+  }
+}
+
+/** 重新绘制当前正在画的选点标记（撤销单个选点时用） */
+function renderFlattenMarkers() {
+  flattenMarkers.forEach(o => { if (o && o.parent) o.parent.remove(o); });
+  flattenMarkers = [];
+  flattenPoly.forEach((p, i) => {
+    const marker = createPointMarker(p, null, i);
+    measurementGroup.add(marker);
+    flattenMarkers.push(marker);
+    if (i >= 1) {
+      const a = flattenPoly[i - 1];
+      const ret = createLine(new THREE.Vector3(a.x, a.y, a.z), new THREE.Vector3(p.x, p.y, p.z), true);
+      measurementGroup.add(ret.line);
+      flattenMarkers.push(ret.line);
+    }
+  });
+}
+
+function undoFlatten() {
+  // 正在画点：撤销最后一个选点（不退出工具）
+  if (flattenPoly.length > 0) {
+    flattenPoly.pop();
+    renderFlattenMarkers();
+    setStatus('↩ 已撤销上一个选点（还剩 ' + flattenPoly.length + ' 个点）');
+    return;
+  }
+  // 没在画点：撤销最后一条已提交压平
+  if (flattenOps.length > 0) {
+    deleteFlattenOp(flattenOps.length - 1);
+    return;
+  }
+  setStatus('没有可撤销的压平操作');
+}
+
+// ============================================================
 //  项目视图保存 / 恢复（state.json）
 // ============================================================
 /** 拼出项目状态文件路径：有 folder → files/<folder>/state.json；扁平时 → files/<main去扩展>_state.json；无效返回 null */
@@ -4778,7 +6133,9 @@ function saveProjectState() {
         zoom:     +orthoCam.zoom.toFixed(4),
         up:       { x: +orthoCam.up.x.toFixed(4), y: +orthoCam.up.y.toFixed(4), z: +orthoCam.up.z.toFixed(4) },
       },
-    }
+    },
+    // 地形压平记录：模型局部坐标多边形 + 基准（最低点 / 自定义高程），刷新后自动重放
+    flatten: flattenOps.slice()
   };
   const payload = {
     folder: currentProject.folder || '',
@@ -4854,6 +6211,29 @@ function restoreProjectState(state) {
     applyRenderParams();
     syncParamControls();
     try { const k = modelParamKey(); if (k) localStorage.setItem(k, JSON.stringify(renderParams)); } catch (e) {}
+  }
+  // 6) 地形压平：把保存的记录并入会话 → 抓原始几何 → 整体重建（模型已 frameModel 摆正，矩阵就绪）
+  if (Array.isArray(state.flatten)) {
+    flattenOps = JSON.parse(JSON.stringify(state.flatten)).map((op, i) => {
+      op.mode = (op.mode === 'blur') ? 'blur' : 'color';
+      if (!op.color || !/^#[0-9a-fA-F]{6}$/.test(op.color)) op.color = FLATTEN_PALETTE[i % FLATTEN_PALETTE.length];
+      if (typeof op.blur !== 'number' || op.blur < 0 || op.blur > 1) op.blur = DEFAULT_FLATTEN_BLUR;
+      if (typeof op.opacity !== 'number' || op.opacity < 0 || op.opacity > 1) op.opacity = DEFAULT_FLATTEN_OPACITY;
+      return op;
+    });
+    flattenSelectedIdx = -1;
+    flattenLastOpIndex = flattenOps.length - 1;
+    if (flattenOps.length) {
+      captureFlattenPristine();                 // 当前几何 = 压平前（已含裁剪），重放前先抓原始快照
+      const total = rebuildFlatten();           // 按记录整体重放
+      if (total > 0) setStatus('已恢复 ' + flattenOps.length + ' 处压平（共 ' + total + ' 顶点），可继续编辑');
+      const last = flattenOps[flattenOps.length - 1];
+      if (last && Array.isArray(last.poly) && last.poly.length >= 3 && currentModel) {
+        flattenLastPoly = last.poly.map(p => currentModel.localToWorld(new THREE.Vector3(p[0], p[1], p[2])));
+      }
+    }
+    renderFlattenList();                        // 把恢复出来的记录渲染成列表
+    clearFlattenEditHandles();                  // 恢复的块默认不显示轮廓点线（点列表某项才显示）
   }
 }
 
@@ -5281,7 +6661,7 @@ function refreshMeasureLineVisibility() {
         tmpDir.copy(tmpV).sub(camera.position);
         dist = tmpDir.length();
         raycaster.set(camera.position, tmpDir.normalize());
-        const ix = raycaster.intersectObject(currentModel, true);
+        const ix = raycaster.intersectObjects(rayPickTargets(), true);
         if (ix.length > 0 && ix[0].distance < dist - 0.02) hits++;
       }
       ratio = hits / (OCCLUSION_SAMPLES - 1);
@@ -5871,6 +7251,35 @@ function initSunPanelDrag() {
   document.addEventListener('mouseup', () => { dragging = false; });
 }
 
+/** 压平浮窗拖动：标题栏 mousedown 拖动（最小化/关闭按钮不触发），仅桌面端 */
+function initFlattenDialogDrag() {
+  const panel = document.querySelector('#flattenDialog .flat-panel');
+  const header = document.getElementById('flattenHeader');
+  if (!panel || !header) return;
+  if (window.innerWidth <= 768) return;   // 移动端浮窗底部停靠，不可拖动
+  let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  header.addEventListener('mousedown', (e) => {
+    if (e.target.id === 'btnFlattenMin' || e.target.id === 'btnFlattenClose') return;
+    dragging = true;
+    const rect = panel.getBoundingClientRect();
+    startX = e.clientX; startY = e.clientY;
+    startLeft = rect.left; startTop = rect.top;
+    panel.style.left = startLeft + 'px'; panel.style.top = startTop + 'px';
+    panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    let nx = startLeft + (e.clientX - startX);
+    let ny = startTop + (e.clientY - startY);
+    const maxX = window.innerWidth - 60, maxY = window.innerHeight - 40;
+    nx = Math.max(-panel.offsetWidth + 60, Math.min(maxX, nx));
+    ny = Math.max(0, Math.min(maxY, ny));
+    panel.style.left = nx + 'px'; panel.style.top = ny + 'px';
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+}
+
 /**
  * 移动端汉堡抽屉：按钮 click 切换抽屉，遮罩 click 关闭，抽屉里每个工具按钮调现有函数。
  * PC 端（>768px）抽屉和汉堡按钮都 display:none，事件绑定也不会触发。
@@ -5903,6 +7312,7 @@ function initMobileDrawer() {
   bind('mDistance', () => toggleTool('distance'));
   bind('mArea', () => toggleTool('area'));
   bind('mCrop', toggleCrop);
+  bind('mFlatten', () => toggleTool('flatten'));
   bind('mPoint', () => toggleTool('point'));
   bind('mShowAll', showAllMeshes);
   bind('mSun', toggleSunAnalysis);
@@ -5916,7 +7326,7 @@ function initMobileDrawer() {
   const syncActive = () => {
     const map = {
       mDistance: 'btnDistance', mArea: 'btnArea', mCrop: 'btnCrop',
-      mPoint: 'btnPoint', mSun: 'btnSunAnalysis'
+      mPoint: 'btnPoint', mSun: 'btnSunAnalysis', mFlatten: 'btnFlatten'
     };
     Object.entries(map).forEach(([mId, pcId]) => {
       const m = document.getElementById(mId);
@@ -6250,6 +7660,8 @@ function showHomePage() {
   if (viewer) viewer.style.display = 'none';
   // 首页不允许编辑项目，禁用「编辑」按钮（无 currentProject 时也不可用）
   const _eb = document.getElementById('btnEdit'); if (_eb) _eb.disabled = true;
+  // 回到首页：标签标题恢复
+  document.title = 'ODM Viewer · 实景三维项目';
   // 渲染首页大图卡片
   renderHomeGrid();
   // 关闭可能开着的下拉
@@ -6962,6 +8374,7 @@ function loadExtraFormat(buf, ext, base) {
 
 /** 按扩展名解析模型缓冲：glb/gltf → parseGLB；obj → 解析并加载同目录 MTL；其余扩展名 → loadExtraFormat */
 function loadModelBuffer(buf, ext, base, proj) {
+  resetFlattenState();   // 换模型先清空上一模型的压平状态（pristine 快照/列表/选区）
   modelBaseName = (proj.main || '').replace(/\.[^.]+$/, '');
   try {
     if (ext === 'obj') {
@@ -7528,7 +8941,8 @@ function applySiteSettings(force) {
       if (s && s.siteName) {
         currentSiteName = s.siteName;
         document.querySelectorAll('.brand-text').forEach(e => { e.textContent = s.siteName; });
-        document.title = s.siteName;
+        // 仅在首页（未进入查看器）才覆盖浏览器标签标题；进入查看页后由 setTopProjectName 管理
+        if (currentPage !== 'viewer') document.title = s.siteName;
         const bb = document.getElementById('bottomBrand');
         if (bb) bb.textContent = s.siteName + ' v1.0';
       }
@@ -7546,7 +8960,7 @@ function applySiteSettings(force) {
       if (!currentSiteName) {
         currentSiteName = 'ODM 查看器';
         document.querySelectorAll('.brand-text').forEach(e => { e.textContent = currentSiteName; });
-        document.title = currentSiteName;
+        if (currentPage !== 'viewer') document.title = currentSiteName;
         const bb = document.getElementById('bottomBrand');
         if (bb) bb.textContent = currentSiteName + ' v1.0';
       }
@@ -7705,6 +9119,1246 @@ function submitEdit() {
 //     · "清除所有标注" 一键删除所有测量
 //     · "重置视角" 相机回到模型初始视角
 // ============================================================
+
+// ============================================================
+//  🧩 叠加模型（newODM 新增功能）
+//  · 工具面板「叠加模型」按钮 → 浮窗：本地文件上传（不进服务器，无需 GPS）
+//  · 多模型叠加共存：列表点选 / 隐藏 / 删除
+//  · 参数面板：上方向（自动检测）· 大小比例 · 朝向 360° · 俯仰 / 侧倾 · 位置 XYZ · 贴地 / 居中 / 回原点
+//  · 画面直接拖拽：TransformControls 三种手柄（移动 / 旋转 / 缩放），与参数面板实时双向同步
+//  · 点击画面上的叠加模型即可选中（绿色包围框）；测量工具激活时自动让位不抢点击
+//  · 结构：root（外层管位置/比例/旋转）→ inner（内层只管上方向摆正）→ 模型本体，互不打架
+// ============================================================
+(function () {
+  const dlg = document.getElementById('overlayDialog');
+  if (!dlg || typeof THREE === 'undefined' || !scene || !renderer) return;
+  const $ = (id) => document.getElementById(id);
+  const D2R = Math.PI / 180;
+  const OV = { list: [], sel: null, seq: 0, tc: null, helper: null, mode: 'translate' };
+  const fileInput = $('overlayFileInput');
+  const listEl = $('overlayList');
+  const paramsEl = $('overlayParams');
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmtN = (v) => (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(2));
+  const fmtScale = (v) => (v >= 10 ? v.toFixed(0) : (v >= 1 ? v.toFixed(2) : v.toFixed(3)));
+
+  // ---------- 浮窗开关 ----------
+  function openDlg() { dlg.classList.add('active'); refreshServerList(); if (OV.sel) select(OV.sel); }
+  function closeDlg() { dlg.classList.remove('active'); if (OV.tc) OV.tc.detach(); }
+  $('btnOverlay').addEventListener('click', () => { dlg.classList.contains('active') ? closeDlg() : openDlg(); });
+  $('btnOverlayClose').addEventListener('click', closeDlg);
+  $('btnOverlayMin').addEventListener('click', () => $('overlayContent').classList.toggle('minimized'));
+
+  // ---------- 标题栏拖动（与画面调参浮窗同款手感） ----------
+  (function () {
+    const bar = $('overlayTitlebar'), panel = $('overlayPanel');
+    let on = false, sx = 0, sy = 0, ox = 0, oy = 0;
+    bar.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      on = true; sx = e.clientX; sy = e.clientY;
+      const r = panel.getBoundingClientRect(); ox = r.left; oy = r.top;
+      try { bar.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    bar.addEventListener('pointermove', (e) => {
+      if (!on) return;
+      panel.style.position = 'fixed'; panel.style.margin = '0';
+      panel.style.left = (ox + e.clientX - sx) + 'px';
+      panel.style.top = (oy + e.clientY - sy) + 'px';
+    });
+    bar.addEventListener('pointerup', () => { on = false; });
+    bar.addEventListener('pointercancel', () => { on = false; });
+  })();
+
+  // ---------- TransformControls 画面拖拽手柄 ----------
+  OV.tc = new TransformControls(camera, renderer.domElement);
+  OV.tc.setSize(0.85);
+  scene.add(OV.tc);
+  OV.tc.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value; });   // 拖手柄时暂停视角
+  OV.tc.addEventListener('objectChange', () => {                                        // 手柄改动 → 回写参数面板
+    if (!OV.sel) return;
+    const r = OV.sel.root, p = OV.sel.params;
+    p.x = r.position.x; p.y = r.position.y; p.z = r.position.z;
+    let h = (r.rotation.y / D2R) % 360; if (h < 0) h += 360;
+    p.heading = Math.round(h);
+    p.pitch = Math.round(r.rotation.x / D2R);
+    p.roll = Math.round(r.rotation.z / D2R);
+    p.scale = (r.scale.x + r.scale.y + r.scale.z) / 3;
+    syncPanelFromParams();
+    if (OV.helper) OV.helper.update();
+  });
+  // 2D/3D 相机切换后同步给手柄（setViewMode 换的是 camera 变量本身）
+  setInterval(() => { if (OV.tc && OV.tc.camera !== camera) OV.tc.camera = camera; }, 300);
+
+  // ---------- 上传（本地即时解析 + 后台同步到服务器 overlay 文件夹） ----------
+  const MODEL_EXTS = ['glb', 'gltf', 'obj', 'stl', 'ply', 'fbx', 'dae', '3mf', '3ds', 'pcd'];
+  const extOf = (n) => (String(n).split('.').pop() || '').toLowerCase();
+  const baseOf = (n) => String(n).replace(/\.[^.\\/]+$/, '').toLowerCase();
+  const fmtSize = (b) => (!(b > 0) ? '' : (b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'));
+
+  /** 当前项目在服务器上的文件夹名；本地文件 / URL 打开的模型返回 null（无法同步服务器） */
+  function ovServerFolder() {
+    return (typeof currentProject !== 'undefined' && currentProject && currentProject.folder)
+      ? String(currentProject.folder) : null;
+  }
+
+  $('btnOverlayUpload').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const fs = [...fileInput.files]; fileInput.value = '';
+    if (!fs.length) return;
+    // 自动分组：.obj 与「同名 .mtl / 本批全部贴图」配成一组；其余模型文件各自成组
+    const objs   = fs.filter((f) => extOf(f.name) === 'obj');
+    const mtls   = fs.filter((f) => extOf(f.name) === 'mtl');
+    const models = fs.filter((f) => extOf(f.name) !== 'obj' && MODEL_EXTS.includes(extOf(f.name)));
+    const texs   = fs.filter((f) => extOf(f.name) !== 'mtl' && !MODEL_EXTS.includes(extOf(f.name)));
+    const groups = [];
+    for (const o of objs) {
+      const mtl = mtls.find((m) => baseOf(m.name) === baseOf(o.name)) ||
+                  (mtls.length === 1 && objs.length === 1 ? mtls[0] : null);
+      groups.push({ name: o.name, obj: o, mtl: mtl, texs: texs, files: [o].concat(mtl ? [mtl] : [], texs) });
+    }
+    for (const m of models) groups.push({ name: m.name, model: m, files: [m] });
+    if (!groups.length) { setStatus('请选择模型文件；.mtl 与贴图需和 .obj 一起上传'); return; }
+    if (!objs.length && (mtls.length || texs.length)) setStatus('⚠ .mtl / 贴图没有配套 .obj，已忽略');
+
+    for (const g of groups) {
+      try { await loadOverlayGroup(g); uploadGroupToServer(g); }
+      catch (e) { console.error(e); showLoading(false); setStatus('❌ 叠加失败「' + g.name + '」：' + (e.message || e)); }
+    }
+  });
+
+  async function loadOverlayGroup(g) {
+    showLoading(true, '正在解析 ' + g.name + ' ...', 100);
+    return g.obj ? await loadLocalObjGroup(g) : await loadOverlayFile(g.model);
+  }
+
+  /** 本地 OBJ + MTL + 贴图：贴图用 blobURL 喂给 MTL 解析器（与主模型 loadLocalObj 同款做法） */
+  async function loadLocalObjGroup(g) {
+    const fileMap = new Map();
+    const revoke = [];
+    for (const f of (g.texs || [])) {
+      const url = URL.createObjectURL(f);
+      fileMap.set(f.name.toLowerCase(), url);
+      revoke.push(url);
+    }
+    let materials = null, mtlMatCount = 0, mtlTexReady = Promise.resolve();
+    if (g.mtl) {
+      try {
+        const txt = await readFileAsText(g.mtl);     // 兼容 FileReader / Blob.text()（部分浏览器 File.readAsText 不稳）
+        const r = parseMtlTextForOverlay(txt, fileMap);
+        materials = r.materials;
+        mtlTexReady = r.texReady;
+        mtlMatCount = materials && materials.materials ? Object.keys(materials.materials).length : 0;
+      } catch (e) { console.warn('MTL 解析失败，按白模处理：', e); }
+    }
+    const ol = new OBJLoader();
+    if (materials) ol.setMaterials(materials);
+    const obj = ol.parse(await g.obj.text());
+    if (!obj) throw new Error('OBJ 解析结果为空');
+    applyObjMaterial(obj);
+    // 等 fileMap 触发的贴图替换全部完成再 buildItem（避免一闪而过白模）
+    await mtlTexReady;
+    setTimeout(() => revoke.forEach((u) => URL.revokeObjectURL(u)), 60000);   // 贴图进 GPU 后再释放
+    const hint = g.mtl ? ('mtl=' + g.mtl.name + ' / 含 ' + mtlMatCount + ' 个材质定义') : '未传 mtl，按白模渲染';
+    setTimeout(() => { try { buildItem(obj, g.name, hint, g.files); } finally { showLoading(false); } }, 30);
+  }
+
+  /** 后台静默同步到服务器（有已存密码才传；没密码就跳过，交由用户点「保存到服务器」按钮） */
+  async function uploadGroupToServer(g) {
+    const folder = ovServerFolder();
+    if (!folder) return;                                        // 本地 / URL 模型：静默跳过
+    const pwd = odmWritePwd();
+    if (!pwd) {                                                 // 本机没存过密码 → 不弹窗打扰，提示用户点按钮
+      setStatus('ℹ 文件仅本次浏览有效，点下方「💾 保存到服务器」存进 overlay 文件夹');
+      return;
+    }
+    const fd = new FormData();
+    for (const f of g.files) fd.append('files[]', f, f.name);
+    fd.append('folder', folder); fd.append('pwd', pwd);
+    try {
+      const r = await fetch('overlay_files.php?action=upload', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (j && j.success) { setStatus('☁️ 已同步 ' + j.count + ' 个文件到 ' + j.dir); refreshServerList(); }
+      else if (j && j.error) setStatus('⚠ 自动同步未成功（' + j.error + '），可点下方「保存到服务器」重试');
+    } catch (e) {
+      setStatus('⚠ 自动同步失败（' + (e.message || e) + '），可点下方「保存到服务器」重试');
+    }
+  }
+
+  // ---------- 保存到服务器（明确的按钮 + 明确的成功 / 失败反馈） ----------
+  $('btnOverlaySave').addEventListener('click', async () => {
+    const folder = ovServerFolder();
+    if (!folder) { setStatus('❌ 本地 / URL 打开的模型没有项目目录，无法保存到服务器'); return; }
+    if (!OV.list.length) { setStatus('⚠ 还没有叠加模型，先点上面「上传叠加模型」'); return; }
+    const withFiles = OV.list.filter((i) => i.files && i.files.length);
+    if (!withFiles.length) {
+      setStatus('ℹ 当前模型都是从服务器加载的，已经在 overlay 文件夹里了，无需重复保存');
+      return;
+    }
+    // 密码：优先用本机已存的；没有则显示输入框让用户填（不再用弹窗，避免被忽略）
+    let pwd = odmWritePwd();
+    if (!pwd) {
+      const row = $('ovSavePwdRow');
+      row.style.display = '';
+      pwd = ($('ovSavePwd').value || '').trim();
+      if (!pwd) { setStatus('⚠ 请先填管理密码（与上传 / 删除项目同一把），再点保存'); $('ovSavePwd').focus(); return; }
+    }
+    const all = [];
+    for (const it of withFiles) for (const f of it.files) all.push(f);
+    setStatus('🔄 正在保存 ' + all.length + ' 个文件到服务器…');
+    const fd = new FormData();
+    for (const f of all) fd.append('files[]', f, f.name);
+    fd.append('folder', folder); fd.append('pwd', pwd);
+    try {
+      const r = await fetch('overlay_files.php?action=upload', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (j && j.success) {
+        try { localStorage.setItem('odm_write_pwd', pwd); } catch (_) {}   // 验证通过，本机记住
+        $('ovSavePwdRow').style.display = 'none'; $('ovSavePwd').value = '';
+        setStatus('✅ 已保存 ' + j.count + ' 个文件到 ' + j.dir);
+        refreshServerList();
+      } else if (j && j.needAuth) {
+        ovAskPwd(() => $('btnOverlaySave').click(), '❌ 管理密码不对，请重新输入后再保存');
+      } else {
+        setStatus('❌ 保存失败：' + ((j && j.error) || '未知错误'));
+      }
+    } catch (e) {
+      setStatus('❌ 保存失败（网络错误）：' + (e.message || e));
+    }
+  });
+
+  // ---------- 服务器上已保存的叠加模型 ----------
+  async function ovServerList() {
+    try {
+      const r = await fetch('overlay_files.php?action=list&folder=' + encodeURIComponent(ovServerFolder()) + '&t=' + Date.now());
+      return await r.json();
+    } catch (e) { return null; }
+  }
+
+  async function refreshServerList() {
+    const folder = ovServerFolder();
+    const box = $('ovServer');
+    if (!folder) { box.style.display = 'none'; return; }
+    box.style.display = '';
+    $('ovServerDir').textContent = 'files/' + folder + '/overlay/';
+    const list = $('ovServerList');
+    list.innerHTML = '<div class="ov-server-empty">正在读取…</div>';
+    const j = await ovServerList();
+    const models = (j && j.success && j.models) ? j.models : [];
+    if (!models.length) { list.innerHTML = '<div class="ov-server-empty">' + (j ? '（还没有上传过）' : '（读取失败）') + '</div>'; return; }
+    list.innerHTML = '';
+    models.forEach((m) => {
+      const el = document.createElement('div');
+      el.className = 'ov-server-item';
+      el.innerHTML = '<span class="ovs-name" title="' + esc(m.name) + '">' + esc(m.name) + '</span>' +
+                     '<span class="ovs-size">' + fmtSize(m.size) + '</span>' +
+                     '<button class="ovs-load">加载</button>' +
+                     '<button class="ovs-del" title="从服务器删除（含同名 mtl / 贴图）">🗑</button>';
+      el.querySelector('.ovs-load').onclick = async () => {
+        try { await loadOverlayFromServer(m.name); }
+        catch (e) { console.error(e); showLoading(false); setStatus('❌ 加载失败「' + m.name + '」：' + (e.message || e)); }
+      };
+      el.querySelector('.ovs-del').onclick = async () => {
+        try {
+          setStatus('🔄 正在查询「' + m.name + '」关联文件…');
+          const fd0 = new FormData();
+          fd0.append('name', m.name);
+          fd0.append('folder', ovServerFolder());
+          const pr = await fetch('overlay_files.php?action=delete&dryRun=1', { method: 'POST', body: fd0 });
+          const pj = await pr.json();
+          if (!pj || !pj.success) { setStatus('❌ 无法预览删除内容：' + ((pj && pj.error) || '未知错误')); return; }
+          const will = pj.willDelete || [];
+          if (!will.length) { setStatus('⚠️ 服务器上没找到「' + m.name + '」相关的文件（可能已被删除）'); refreshServerList(); return; }
+          if (!confirm('确定删除「' + m.name + '」关联的 ' + will.length + ' 个文件？\n\n' + will.join('\n') + '\n\n（删除后不可恢复）')) return;
+          await deleteOverlayFromServer(m.name);
+        } catch (e) { setStatus('❌ 预览失败：' + (e.message || e)); }
+      };
+      list.appendChild(el);
+    });
+  }
+  $('ovServerRefresh').addEventListener('click', refreshServerList);
+
+  /** 从服务器 URL 直接加载（OBJ 自动配对同名 .mtl，贴图按同目录相对路径解析） */
+  async function loadOverlayFromServer(name) {
+    const folder = ovServerFolder();
+    if (!folder) throw new Error('无项目目录，无法从服务器加载');
+    const dirUrl = 'files/' + encodeURIComponent(folder) + '/overlay/';
+    const url = dirUrl + encodeURIComponent(name);
+    const ext = extOf(name);
+    showLoading(true, '正在加载 ' + name + ' ...', 100);
+    const P = (loader, u, pick) => new Promise((res, rej) => loader.load(u, (r) => res(pick ? pick(r) : r), undefined, rej));
+    let obj = null;
+    if (ext === 'glb' || ext === 'gltf') {
+      obj = await P(makeGLTFLoader(), url, (g) => g.scene);
+    } else if (ext === 'obj') {
+      // 先 fetch mtl 文本 + 兄弟贴图到 blob，构建 fileMap 走与本地 OBJ 统一的 parseMtlText 流程
+      const mtlName = await pickMtlName(name);
+      let mc = null;
+      if (mtlName) {
+        try {
+          const mtlText = await (await fetch(dirUrl + encodeURIComponent(mtlName))).text();
+          // 列出服务器上所有可能的图片文件（在 others 中以图片扩展名结尾的），全部 fetch 下来建立 fileMap
+          const ovList = await ovServerList();
+          const imageFiles = ((ovList && ovList.others) || []).filter((o) => /\.(jpe?g|png|bmp|tga|tiff?|webp|hdr|exr|gif)$/i.test(o.name));
+          const fileMap = new Map();
+          for (const i of imageFiles) {
+            try {
+              const r = await fetch(dirUrl + encodeURIComponent(i.name));
+              if (!r.ok) continue;
+              const blob = await r.blob();
+              fileMap.set(i.name.toLowerCase(), URL.createObjectURL(blob));
+            } catch (_) {}
+          }
+          const r = parseMtlTextForOverlay(mtlText, fileMap);
+          mc = r.materials;
+          await r.texReady;                                       // 等所有贴图真加载完成再 buildItem（避免白模一闪）
+          mtlMatCount = mc && mc.materials ? Object.keys(mc.materials).length : 0;
+        } catch (e) { console.warn('MTL 加载失败，按白模处理：', e); }
+      }
+      const ol = new OBJLoader(); ol.setPath(dirUrl);
+      if (mc) ol.setMaterials(mc);
+      obj = await P(ol, name);
+      applyObjMaterial(obj);
+    } else if (ext === 'stl' || ext === 'ply') {
+      const geo = (ext === 'stl') ? await P(new STLLoader(), url) : await P(new PLYLoader(), url);
+      geo.computeVertexNormals();
+      obj = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xbfc7d1, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }));
+    } else if (ext === 'pcd') { obj = await P(new PCDLoader(), url); }
+    else if (ext === 'fbx')   { obj = await P(new FBXLoader(), url); }
+    else if (ext === 'dae')   { obj = await P(new ColladaLoader(), url, (r) => r.scene); }
+    else if (ext === '3mf')   { obj = await P(new ThreeMFLoader(), url); }
+    else if (ext === '3ds')   { obj = await P(new TDSLoader(), url); }
+    if (!obj) throw new Error('不支持的格式 .' + ext);
+    setTimeout(() => { try { buildItem(obj, name); } finally { showLoading(false); } }, 30);
+  }
+
+  /** 从服务器删除一个叠加模型（整组同基名文件）。复用与 save 一致的密码管理 */
+  async function deleteOverlayFromServer(name) {
+    const folder = ovServerFolder();
+    if (!folder) { setStatus('❌ 本地 / URL 打开的模型没有项目目录，无法删除服务器文件'); return; }
+    setStatus('🔄 正在从服务器删除「' + name + '」…');
+    let pwd = odmWritePwd();
+    let tries = 0;
+    while (tries++ < 2) {
+      try {
+        const fd = new FormData();
+        fd.append('pwd', pwd || '');
+        fd.append('name', name);
+        fd.append('folder', folder);
+        const r = await fetch('overlay_files.php?action=delete', { method: 'POST', body: fd });
+        const j = await r.json();
+        if (j && j.success) {
+          try { localStorage.setItem('odm_write_pwd', pwd); } catch (_) {}
+          const list = j.deleted || [];
+          setStatus('✅ 已从服务器删除「' + baseOf(name) + '」共 ' + list.length + ' 个文件' + (j.failed && j.failed.length ? '（' + j.failed.length + ' 个失败）' : ''));
+          refreshServerList();
+          return;
+        }
+        if (j && j.needAuth) {
+          ovAskPwd(() => deleteOverlayFromServer(name), '❌ 管理密码不对，请重新输入后再点删除');
+          return;
+        }
+        setStatus('❌ 删除失败：' + ((j && j.error) || '未知错误'));
+        return;
+      } catch (e) {
+        setStatus('❌ 删除失败（网络错误）：' + (e.message || e));
+        return;
+      }
+    }
+  }
+
+  /** OBJ 的 mtl 配对：同名优先，否则目录下唯一一个 mtl */
+  async function pickMtlName(objName) {
+    const j = await ovServerList();
+    const mtls = ((j && j.others) || []).filter((o) => /\.mtl$/i.test(o.name));
+    if (!mtls.length) return null;
+    const same = mtls.find((m) => baseOf(m.name) === baseOf(objName));
+    return same ? same.name : (mtls.length === 1 ? mtls[0].name : null);
+  }
+
+  async function loadOverlayFile(file) {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    showLoading(true, '正在解析 ' + file.name + ' ...', 100);
+    const buf = await file.arrayBuffer();
+    let obj = null;
+    if (ext === 'glb' || ext === 'gltf') {
+      obj = await new Promise((res, rej) => makeGLTFLoader().parse(buf, '', (g) => res(g.scene), (e) => rej(e)));
+    } else if (ext === 'obj') {
+      obj = new OBJLoader().parse(new TextDecoder().decode(buf));
+      applyObjMaterial(obj);
+    } else if (ext === 'stl' || ext === 'ply') {
+      const geo = (ext === 'stl') ? new STLLoader().parse(buf) : new PLYLoader().parse(buf);
+      geo.computeVertexNormals();
+      obj = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xbfc7d1, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }));
+    } else if (ext === 'pcd') {
+      obj = new PCDLoader().parse(buf);
+    } else if (ext === 'fbx') {
+      obj = new FBXLoader().parse(buf);
+    } else if (ext === 'dae') {
+      obj = new ColladaLoader().parse(new TextDecoder().decode(buf)).scene;
+    } else if (ext === '3mf') {
+      obj = new ThreeMFLoader().parse(buf);
+    } else if (ext === '3ds') {
+      obj = new TDSLoader().parse(buf);
+    }
+    if (!obj) throw new Error('解析结果为空');
+    // 解析和 BVH 建树较重，让 loading 先画出来再干
+    setTimeout(() => {
+      try { buildItem(obj, file.name, ext.toUpperCase() + ' / 无内嵌材质，按白模渲染', [file]); }
+      finally { showLoading(false); }
+    }, 30);
+  }
+
+  function buildItem(model, name, hint, files) {
+    // 原始包围盒 + up 方向自动检测（与主模型 frameModel 同一规则：明显扁平才转）
+    const rawBox = new THREE.Box3().setFromObject(model);
+    const rawSize = rawBox.getSize(new THREE.Vector3());
+    const dims = [['x', rawSize.x], ['y', rawSize.y], ['z', rawSize.z]].sort((a, b) => a[1] - b[1]);
+    let up = 'y';
+    if (dims[0][1] / Math.max(dims[1][1], 1e-6) < 0.6) up = dims[0][0];
+    // 默认按模型真实尺寸 1:1 显示（不自动缩小）；想缩随时用「自动适配」或比例滑块
+    const scale = 1;
+
+    const root = new THREE.Group(); root.name = 'overlay-' + name;
+    const inner = new THREE.Group(); inner.add(model); root.add(inner);
+    const item = {
+      id: ++OV.seq, name, root, inner, visible: true, rawSize: rawSize.clone(),
+      files: files || [],        // 原始上传文件（点「保存到服务器」时用它；从服务器加载的模型为空）
+      params: { up, scale, heading: 0, pitch: 0, roll: 0, x: 0, y: 0, z: 0 }
+    };
+    OV.list.push(item);
+    scene.add(root);
+    overlayModelRoots.push(root);   // 供测量 / 打点射线拾取（与主模型同处一个世界坐标系，GPS 自动基于主模型空间）
+    // BVH 空间索引：点选 / 后续射线加速
+    let bvh = 0;
+    root.traverse((o) => {
+      if (o.isMesh && o.geometry && o.geometry.attributes && o.geometry.attributes.position) {
+        try { if (!o.geometry.boundsTree) { o.geometry.computeBoundsTree(); bvh++; } } catch (_) {}
+      }
+    });
+    // GLB/GLTF 接缝修复（与主模型同款：关 Repeat 环绕 + 关 mipmap）
+    root.traverse((o) => {
+      if (!o.isMesh || !o.material) return;
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
+        if (!m.map) return;
+        m.map.wrapS = THREE.ClampToEdgeWrapping; m.map.wrapT = THREE.ClampToEdgeWrapping;
+        m.map.minFilter = THREE.LinearFilter; m.map.magFilter = THREE.LinearFilter;
+        m.map.needsUpdate = true;
+      });
+    });
+    // 自发光兜底：无贴图的 mesh 加微弱 emissive，避免 MeshStandardMaterial 在背光面 / 主模型阴影里纯黑
+    // 有贴图的保持原色不受影响；白模 / OBJ 默认材质（无 Kd）也能看见轮廓
+    let meshCount = 0, texCount = 0, noTexCount = 0;
+    root.traverse((o) => {
+      if (!o.isMesh || !o.material) return;
+      const ms = Array.isArray(o.material) ? o.material : [o.material];
+      for (const m of ms) {
+        if (!m) continue;
+        meshCount++;
+        // 真正有效贴图：m.map 存在且已成功加载（image.width > 0）。m.map 存在但 image 失败不算贴图生效。
+        const hasRealTex = !!(m.map && m.map.image && m.map.image.width > 0);
+        if (hasRealTex) { texCount++; continue; }
+        noTexCount++;
+        // 区分「无贴图但自带颜色」与「真正的白模」：
+        // - 自带颜色（如基础体库导出的 GLB）→ 保留原色，仅补一点自发光，避免阴影/背光面纯黑；
+        // - 默认纯白（OBJ 无 mtl、STL/PLY 默认等）→ 用显眼浅蓝灰，保证几何任何光照下都看得见。
+        const isDefaultWhite = !m.color || m.color.getHex() === 0xffffff;
+        m.metalness = (typeof m.metalness === 'number') ? m.metalness : 0;
+        m.roughness = 0.7;                          // 别太磨砂，留点反射
+        if (m.side === THREE.FrontSide) m.side = THREE.DoubleSide;
+        if (isDefaultWhite) {
+          m.color = new THREE.Color(0xb8c4d0);                     // 浅蓝灰，几何清晰
+          m.emissive = new THREE.Color(0x888888);                  // 中等偏亮自发光，阴影/背光面也能看见
+        } else {
+          m.emissive = m.color.clone().multiplyScalar(0.35);        // 保留原色，仅补微弱自发光防纯黑
+        }
+        m.needsUpdate = true;
+      }
+    });
+    applyParams(item);
+    // 初始摆放：水平居中 + 贴地（y=0）
+    const wb = new THREE.Box3().setFromObject(root);
+    root.position.x -= (wb.min.x + wb.max.x) / 2;
+    root.position.z -= (wb.min.z + wb.max.z) / 2;
+    root.position.y -= wb.min.y;
+    item.params.x = root.position.x; item.params.y = root.position.y; item.params.z = root.position.z;
+    renderList();
+    select(item);
+    // 诊断信息：南哥反馈"叠加一片黑"时第一时间看出 mesh / 贴图 / mtl 状态
+    setStatus('✅ 已叠加「' + name + '」：' + meshCount + ' mesh / 含贴图 ' + texCount +
+              ' / 无贴图 ' + noTexCount + (hint ? ' / ' + hint : '') + '，拖拽摆好即可截图');
+  }
+
+  // ---------- 参数应用（root 管位/比/转，inner 只管上方向摆正） ----------
+  function applyParams(item) {
+    const p = item.params;
+    if (p.up === 'z')      item.inner.rotation.set(-Math.PI / 2, 0, 0);   // Z-up → Y-up（ODM 惯例）
+    else if (p.up === 'x') item.inner.rotation.set(0, 0, Math.PI / 2);   // X-up → Y-up
+    else                   item.inner.rotation.set(0, 0, 0);
+    item.root.rotation.order = 'YXZ';
+    item.root.rotation.set(p.pitch * D2R, p.heading * D2R, p.roll * D2R);
+    item.root.scale.setScalar(p.scale);
+    item.root.position.set(p.x, p.y, p.z);
+    if (OV.helper && OV.sel === item) OV.helper.update();
+  }
+
+  // ---------- 列表渲染 ----------
+  function renderList() {
+    listEl.innerHTML = '';
+    $('overlayEmpty').style.display = OV.list.length ? 'none' : '';
+    OV.list.forEach((item) => {
+      const el = document.createElement('div');
+      el.className = 'ov-item' + (OV.sel === item ? ' active' : '') + (item.visible ? '' : ' off');
+      el.innerHTML =
+        '<button class="ov-eye" title="' + (item.visible ? '隐藏' : '显示') + '">' + (item.visible ? '👁' : '🚫') + '</button>' +
+        '<span class="ov-name"><b>' + esc(item.name) + '</b><small>原始尺寸 ' + fmtN(item.rawSize.x) + ' × ' + fmtN(item.rawSize.y) + ' × ' + fmtN(item.rawSize.z) + '</small></span>' +
+        '<button class="ov-del" title="删除">🗑</button>';
+      el.querySelector('.ov-eye').onclick = (e) => { e.stopPropagation(); item.visible = !item.visible; item.root.visible = item.visible; renderList(); };
+      el.querySelector('.ov-del').onclick = (e) => { e.stopPropagation(); removeItem(item); };
+      el.onclick = () => select(item);
+      listEl.appendChild(el);
+    });
+  }
+
+  function removeItem(item) {
+    scene.remove(item.root);
+    disposeObject(item.root);
+    OV.list = OV.list.filter((i) => i !== item);
+    const oi = overlayModelRoots.indexOf(item.root);
+    if (oi >= 0) overlayModelRoots.splice(oi, 1);
+    if (OV.sel === item) {
+      OV.sel = null; OV.tc.detach();
+      if (OV.helper) { scene.remove(OV.helper); OV.helper = null; }
+      paramsEl.style.display = 'none';
+    }
+    renderList();
+    setStatus('已删除叠加模型「' + item.name + '」');
+  }
+
+  function select(item) {
+    OV.sel = item;
+    renderList();
+    paramsEl.style.display = '';
+    if (OV.helper) { scene.remove(OV.helper); OV.helper = null; }
+    OV.helper = new THREE.BoxHelper(item.root, 0x10b981);   // 绿框 = 当前选中
+    OV.helper.material.depthTest = false;                    // 高亮框不被模型自身挡住
+    OV.helper.renderOrder = 999;
+    scene.add(OV.helper);
+    OV.tc.setMode(OV.mode);
+    OV.tc.attach(item.root);
+    syncPanelFromParams();
+  }
+
+  /** 取消选中：手柄和绿框全部隐藏（方便直接截图），参数区收起，列表高亮清除 */
+  function deselect() {
+    if (!OV.sel) return;
+    OV.sel = null;
+    OV.tc.detach();
+    if (OV.helper) { scene.remove(OV.helper); OV.helper = null; }
+    paramsEl.style.display = 'none';
+    renderList();
+  }
+  // Esc 键同样取消选中（叠加浮窗打开时生效）
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dlg.classList.contains('active')) deselect();
+  });
+
+  // ---------- 参数面板 → 模型 ----------
+  $('ovUp').addEventListener('change', (e) => {
+    if (!OV.sel) return;
+    let v = e.target.value;
+    if (v === 'auto') {
+      const s = OV.sel.rawSize;
+      const d = [['x', s.x], ['y', s.y], ['z', s.z]].sort((a, b) => a[1] - b[1]);
+      v = (d[0][1] / Math.max(d[1][1], 1e-6) < 0.6) ? d[0][0] : 'y';
+    }
+    OV.sel.params.up = v;
+    applyParams(OV.sel);
+    e.target.value = v;
+  });
+
+  $('ovScale').addEventListener('input', (e) => {
+    if (!OV.sel) return;
+    const p = OV.sel.params;
+    p.scale = Math.pow(10, parseFloat(e.target.value));
+    $('ovScaleVal').textContent = '×' + fmtScale(p.scale);
+    applyParams(OV.sel);
+  });
+
+  [['ovHeading', 'heading', 'ovHeadingVal'], ['ovPitch', 'pitch', 'ovPitchVal'], ['ovRoll', 'roll', 'ovRollVal']].forEach(([id, key, valId]) => {
+    $(id).addEventListener('input', (e) => {
+      if (!OV.sel) return;
+      OV.sel.params[key] = parseInt(e.target.value, 10) || 0;
+      $(valId).textContent = OV.sel.params[key] + '°';
+      applyParams(OV.sel);
+    });
+  });
+
+  ['ovPosX', 'ovPosY', 'ovPosZ'].forEach((id, i) => {
+    $(id).addEventListener('input', (e) => {
+      if (!OV.sel) return;
+      const v = parseFloat(e.target.value);
+      if (isNaN(v)) return;
+      OV.sel.params[['x', 'y', 'z'][i]] = v;
+      applyParams(OV.sel);
+    });
+  });
+
+  // 小按钮：÷2 / ×2 / 自动适配 / 贴地 / 居中 / 回原点
+  paramsEl.querySelectorAll('.ov-mini').forEach((b) => {
+    b.addEventListener('click', () => {
+      if (!OV.sel) return;
+      const p = OV.sel.params;
+      const act = b.dataset.act;
+      if (act === 'half') p.scale = Math.max(0.001, p.scale / 2);
+      else if (act === 'double') p.scale = Math.min(1000, p.scale * 2);
+      else if (act === 'fit') {
+        const mainDim = (typeof savedCameraState !== 'undefined' && savedCameraState && savedCameraState.maxDim) ? savedCameraState.maxDim : 10;
+        const rawMax = Math.max(OV.sel.rawSize.x, OV.sel.rawSize.y, OV.sel.rawSize.z) || 1;
+        p.scale = (mainDim * 0.1) / rawMax;
+      } else if (act === 'ground') {
+        applyParams(OV.sel);
+        const wb = new THREE.Box3().setFromObject(OV.sel.root);
+        p.y -= wb.min.y;   // 底面贴到 y=0 地平面
+      } else if (act === 'center') {
+        applyParams(OV.sel);
+        const wb = new THREE.Box3().setFromObject(OV.sel.root);
+        p.x -= (wb.min.x + wb.max.x) / 2;
+        p.z -= (wb.min.z + wb.max.z) / 2;
+      } else if (act === 'reset') {
+        p.heading = 0; p.pitch = 0; p.roll = 0;
+        applyParams(OV.sel);
+        const wb = new THREE.Box3().setFromObject(OV.sel.root);
+        p.x -= (wb.min.x + wb.max.x) / 2;
+        p.z -= (wb.min.z + wb.max.z) / 2;
+        p.y -= wb.min.y;
+      }
+      applyParams(OV.sel);
+      syncPanelFromParams();
+    });
+  });
+
+  // 拖拽模式：移动 / 旋转 / 缩放
+  paramsEl.querySelectorAll('.ov-mode').forEach((b) => {
+    b.addEventListener('click', () => {
+      OV.mode = b.dataset.mode;
+      paramsEl.querySelectorAll('.ov-mode').forEach((x) => x.classList.toggle('active', x === b));
+      OV.tc.setMode(OV.mode);
+    });
+  });
+
+  // ---------- 参数面板 ← 模型（手柄拖完回写显示） ----------
+  function syncPanelFromParams() {
+    if (!OV.sel) return;
+    const p = OV.sel.params;
+    $('ovUp').value = p.up;
+    const sv = Math.max(-2, Math.min(2, Math.log10(Math.max(p.scale, 1e-9))));
+    $('ovScale').value = sv;
+    $('ovScaleVal').textContent = '×' + fmtScale(p.scale);
+    $('ovHeading').value = p.heading; $('ovHeadingVal').textContent = p.heading + '°';
+    $('ovPitch').value = p.pitch;     $('ovPitchVal').textContent = p.pitch + '°';
+    $('ovRoll').value = p.roll;       $('ovRollVal').textContent = p.roll + '°';
+    $('ovPosX').value = +p.x.toFixed(2);
+    $('ovPosY').value = +p.y.toFixed(2);
+    $('ovPosZ').value = +p.z.toFixed(2);
+  }
+
+  // ---------- 画面点选叠加模型（测量工具激活时让位） ----------
+  let pd = null;
+  renderer.domElement.addEventListener('pointerdown', (e) => { pd = { x: e.clientX, y: e.clientY }; });
+  renderer.domElement.addEventListener('pointerup', (e) => {
+    if (!pd) return;
+    const moved = Math.hypot(e.clientX - pd.x, e.clientY - pd.y);
+    pd = null;
+    if (moved > 6) return;                                              // 拖动视角不算点击
+    if (!dlg.classList.contains('active')) return;                     // 浮窗没开不抢点击
+    if (typeof currentTool !== 'undefined' && currentTool !== 'none') return;   // 测量 / 裁剪工具让位
+    if (OV.tc && OV.tc.dragging) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+    const rc = new THREE.Raycaster(); rc.setFromCamera(ndc, camera); rc.firstHitOnly = true;
+    const hits = rc.intersectObjects(OV.list.filter((i) => i.visible).map((i) => i.root), true);
+    if (!hits.length) { deselect(); return; }                  // 点空白处 = 取消选中（手柄 / 绿框消失）
+    const hitObj = hits[0].object;
+    const item = OV.list.find((i) => { let n = hitObj; while (n) { if (n === i.root) return true; n = n.parent; } return false; });
+    if (item && item !== OV.sel) select(item);
+  });
+})();
+
+/* ============== 📦 基础体库（PRIM）：在场景里画各种基础几何体 ============== */
+(function () {
+  const dlg = document.getElementById('primDialog');
+  if (!dlg || typeof THREE === 'undefined' || !scene || !renderer) return;
+  const $ = (id) => document.getElementById(id);
+  const D2R = Math.PI / 180;
+  const fmtScale = (v) => (v >= 10 ? v.toFixed(0) : (v >= 1 ? v.toFixed(2) : v.toFixed(3)));
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // 所有基础体都挂在这个分组下，方便整体导出 / 清空
+  let primitiveGroup = scene.getObjectByName('__PRIM_GROUP__');
+  if (!primitiveGroup) { primitiveGroup = new THREE.Group(); primitiveGroup.name = '__PRIM_GROUP__'; scene.add(primitiveGroup); }
+
+  const PRIM = { list: [], sel: null, seq: 0, idc: 0, tc: null, mode: 'translate' };
+  const listEl = $('primList');
+  const paramsEl = $('primParams');
+  const emptyEl = $('primEmpty');
+
+  const TYPES = {
+    box:      { label: '立方体', icon: '⬛', fields: [['w', '宽', 1, '宽：立方体沿 X 方向（东西）的边长，单位米'], ['h', '高', 1, '高：立方体沿 Y 方向（竖直）的边长，单位米'], ['d', '深', 1, '深：立方体沿 Z 方向（南北）的边长，单位米']] },
+    sphere:   { label: '球体',   icon: '⚪', fields: [['r', '半径', 0.5, '半径：球的半径，单位米']] },
+    cylinder: { label: '圆柱',   icon: '🛢', fields: [['r', '半径', 0.5, '半径：圆柱上下底面的半径，单位米'], ['h', '高', 1, '高：圆柱的高度，沿 Y 方向（竖直），单位米']] },
+    cone:     { label: '圆锥',   icon: '🔺', fields: [['r', '半径', 0.5, '半径：圆锥底面的半径，单位米'], ['h', '高', 1, '高：圆锥的高度，沿 Y 方向（竖直），单位米']] },
+    torus:    { label: '圆环',   icon: '⭕', fields: [['r', '半径', 0.6, '半径：圆环中心到管子中心的距离，单位米'], ['t', '管径', 0.18, '管径：圆环管子本身的粗细，单位米']] },
+    plane:    { label: '平面',   icon: '▭', fields: [['w', '宽', 1, '宽：平面沿 X 方向（东西）的尺寸，单位米'], ['h', '高', 1, '高：平面沿 Y 方向（竖直）的尺寸，单位米']] },
+    capsule:  { label: '胶囊',   icon: '💊', fields: [['r', '半径', 0.3, '半径：胶囊两端半球的半径，单位米'], ['l', '长', 0.6, '长：胶囊中间圆柱段的长度，单位米']] },
+    extrude:  { label: '拉伸体', icon: '🟦', fields: [['w', '宽', 1, '宽：矩形截面的宽，沿 X 方向（东西），单位米'], ['d', '深', 1, '深：矩形截面的深，沿 Z 方向（南北），单位米'], ['h', '高', 0.5, '高：拉伸出来的厚度，沿 Y 方向（竖直），单位米'], ['bevel', '倒角', 0.05, '倒角：边缘倒角大小，0 为直角，单位米']] },
+    lathe:    { label: '车削体', icon: '🏺', fields: [['r', '半径', 0.5, '半径：旋转体最宽处的半径，单位米'], ['h', '高', 1, '高：旋转体的总高度，沿 Y 方向（竖直），单位米']] },
+    tube:     { label: '螺旋管', icon: '🌀', fields: [['R', '盘径', 0.6, '盘径：整个螺旋盘子的大小（中心到螺旋的横向距离），单位米'], ['tr', '管径', 0.08, '管径：螺旋管子本身的粗细，单位米'], ['h', '高', 1, '高：螺旋整体高度，沿 Y 方向（竖直），单位米'], ['turns', '圈数', 4, '圈数：螺旋缠绕的圈数，数值越大盘得越密']] },
+    text:     { label: '文字',   icon: '🔤', fields: [['size', '字号', 1, '字号：文字整体大小的倍数，1 为基础大小，越大字越大']], text: true },
+  };
+
+  function makeGeometry(type, s) {
+    switch (type) {
+      case 'box':      return new THREE.BoxGeometry(s.w, s.h, s.d);
+      case 'sphere':   return new THREE.SphereGeometry(s.r, 32, 24);
+      case 'cylinder': return new THREE.CylinderGeometry(s.r, s.r, s.h, 40);
+      case 'cone':     return new THREE.ConeGeometry(s.r, s.h, 40);
+      case 'torus':    return new THREE.TorusGeometry(s.r, s.t, 18, 60);
+      case 'plane':    return new THREE.PlaneGeometry(s.w, s.h);
+      case 'capsule':  return new THREE.CapsuleGeometry(s.r, Math.max(0.001, s.l - 2 * s.r), 10, 24);
+      case 'extrude': {
+        const b = Math.max(0, s.bevel || 0);
+        const w2 = s.w / 2, d2 = s.d / 2;
+        const shape = new THREE.Shape();
+        shape.moveTo(-w2, -d2); shape.lineTo(w2, -d2); shape.lineTo(w2, d2); shape.lineTo(-w2, d2); shape.closePath();
+        const g = new THREE.ExtrudeGeometry(shape, { depth: s.h, bevelEnabled: b > 0, bevelThickness: b, bevelSize: b, bevelSegments: 2, steps: 1, curveSegments: 12 });
+        g.rotateX(-Math.PI / 2);  // 拉伸方向改为沿 Y 轴（与场景 Y-up 一致）
+        return g;
+      }
+      case 'lathe': {
+        const r = s.r, h = s.h, pts = [
+          new THREE.Vector2(0.001, 0), new THREE.Vector2(r, 0), new THREE.Vector2(r, h * 0.6),
+          new THREE.Vector2(r * 0.55, h * 0.85), new THREE.Vector2(r * 0.55, h), new THREE.Vector2(0.001, h),
+        ];
+        return new THREE.LatheGeometry(pts, 40);
+      }
+      case 'tube': {
+        const R = s.R, tr = s.tr, h = s.h, turns = s.turns || 4, seg = Math.max(16, Math.round(turns * 24));
+        const path = new THREE.Curve();
+        path.getPoint = (t) => {
+          const a = t * turns * Math.PI * 2, y = (t - 0.5) * h;
+          return new THREE.Vector3(Math.cos(a) * R, y, Math.sin(a) * R);
+        };
+        return new THREE.TubeGeometry(path, seg, tr, 12, false);
+      }
+    }
+    return new THREE.BoxGeometry(1, 1, 1);
+  }
+
+  function buildTextMesh(p) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const fontPx = 120;
+    const text = p.text || '文字';
+    ctx.font = 'bold ' + fontPx + 'px sans-serif';
+    const tw = Math.max(10, ctx.measureText(text).width);
+    canvas.width = Math.ceil(tw + 24);
+    canvas.height = fontPx + 40;
+    ctx.font = 'bold ' + fontPx + 'px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 12, canvas.height / 2);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.anisotropy = 4; tex.needsUpdate = true;
+    const aspect = canvas.width / canvas.height;
+    const h = 1, w = aspect * h;
+    const geometry = new THREE.PlaneGeometry(w, h);
+    const material = new THREE.MeshStandardMaterial({ map: tex, transparent: true, opacity: p.opacity, color: new THREE.Color(p.color), side: THREE.DoubleSide, roughness: 1, metalness: 0 });
+    return { mesh: new THREE.Mesh(geometry, material), geometry, tex };
+  }
+
+  function rebuildGeometry(item) {
+    if (item.type === 'csg') return;  // 布尔体：静态几何，无参数化重建
+    const p = item.params;
+    if (item.type === 'text') {
+      if (item.mesh.geometry) item.mesh.geometry.dispose();
+      if (item.mesh.material.map) item.mesh.material.map.dispose();
+      const r = buildTextMesh(p);
+      item.mesh.geometry = r.geometry;
+      item.mesh.material.map = r.tex;
+      item.mesh.material.color.set(p.color);
+      item.mesh.material.needsUpdate = true;
+      item.mesh.scale.set(p.size.size || 1, p.size.size || 1, 1);
+      return;
+    }
+    const ng = makeGeometry(item.type, p.size);
+    if (ng) { if (item.mesh.geometry) item.mesh.geometry.dispose(); item.mesh.geometry = ng; item.geometry = ng; }
+  }
+
+  function applyParams(item) {
+    const p = item.params, r = item.root;
+    r.position.set(p.x, p.y, p.z);
+    r.rotation.set(p.rx * D2R, p.ry * D2R, p.rz * D2R);
+    r.scale.set(p.sx * p.scale, p.sy * p.scale, p.sz * p.scale);
+    r.visible = p.visible;
+    const m = item.mesh.material;
+    if (m) {
+      if (m.color) m.color.set(p.color);
+      m.opacity = p.opacity; m.transparent = p.opacity < 1; m.needsUpdate = true;
+    }
+  }
+
+  function buildItem(type) {
+    const def = TYPES[type];
+    if (!def) return null;
+    const p = {
+      type,
+      name: def.label + (++PRIM.seq),
+      size: {},
+      x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0,
+      scale: 1, sx: 1, sy: 1, sz: 1,
+      color: '#4f9bff',
+      opacity: 1,
+      visible: true,
+      text: '文字',
+    };
+    def.fields.forEach(([k, , v]) => p.size[k] = v);
+    if (def.text) p.size.size = 1;
+    if (controls && controls.target) { p.x = controls.target.x; p.y = controls.target.y; p.z = controls.target.z; }
+
+    let mesh;
+    if (type === 'text') {
+      mesh = buildTextMesh(p).mesh;
+    } else {
+      const geometry = makeGeometry(type, p.size);
+      mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+        color: new THREE.Color(p.color), transparent: false, opacity: 1, side: THREE.DoubleSide, roughness: 0.7, metalness: 0.05,
+      }));
+    }
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    const root = new THREE.Group();
+    root.add(mesh);
+    primitiveGroup.add(root);
+
+    const item = { id: 'p' + (++PRIM.idc), type, root, mesh, geometry: mesh.geometry, params: p };
+    mesh.userData.primItem = item;
+    applyParams(item);
+    PRIM.list.push(item);
+    return item;
+  }
+
+  function disposeItem(i) {
+    i.root.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); }
+    });
+  }
+  function removeItem(item) {
+    const idx = PRIM.list.indexOf(item); if (idx < 0) return;
+    primitiveGroup.remove(item.root); disposeItem(item); PRIM.list.splice(idx, 1);
+    if (PRIM.sel === item) deselect(); else renderList();
+  }
+
+  // ---------- 选中绿框 ----------
+  let selHelper = null;
+  function refreshHelper() {
+    if (!PRIM.sel) {
+      if (selHelper) { scene.remove(selHelper); selHelper.geometry.dispose(); selHelper.material.dispose(); selHelper = null; }
+      return;
+    }
+    if (!selHelper) { selHelper = new THREE.BoxHelper(PRIM.sel.root, 0x37d67a); scene.add(selHelper); }
+    else selHelper.setFromObject(PRIM.sel.root);
+  }
+
+  function select(item) {
+    PRIM.sel = item;
+    renderList();
+    paramsEl.style.display = '';
+    if (PRIM.tc) { PRIM.tc.attach(item.root); PRIM.tc.setMode(PRIM.mode); }
+    buildSizeInputs(item.type);
+    refreshHelper();
+    syncPanelFromParams();
+  }
+  function deselect() {
+    PRIM.sel = null;
+    if (PRIM.tc) PRIM.tc.detach();
+    paramsEl.style.display = 'none';
+    refreshHelper();
+    renderList();
+  }
+
+  function buildSizeInputs(type) {
+    const def = TYPES[type];
+    const grid = $('primSizeGrid');
+    grid.innerHTML = '';
+    if (!def) {  // 布尔体等无参数化尺寸的类型
+      grid.innerHTML = '<div class="dialog-hint" style="grid-column:1/-1">（由布尔运算生成，无尺寸参数；可整体移动 / 旋转 / 缩放 / 改色）</div>';
+      $('primTextRow').style.display = 'none';
+      return;
+    }
+    def.fields.forEach(([k, label, defv, tip]) => {
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.step = 'any'; inp.placeholder = label;
+      inp.title = tip || label;
+      inp.dataset.key = k; inp.className = 'prim-size-input';
+      inp.value = (PRIM.sel.params.size[k] != null) ? PRIM.sel.params.size[k] : defv;
+      inp.addEventListener('input', () => {
+        if (!PRIM.sel) return;
+        const v = parseFloat(inp.value); if (isNaN(v)) return;
+        PRIM.sel.params.size[k] = v;
+        if (PRIM.sel.type === 'text') PRIM.sel.mesh.scale.set(v, v, 1);
+        else rebuildGeometry(PRIM.sel);
+        refreshHelper();
+      });
+      grid.appendChild(inp);
+    });
+    $('primTextRow').style.display = def.text ? '' : 'none';
+    if (def.text) $('primText').value = PRIM.sel.params.text || '文字';
+  }
+
+  // 复制：生成一个尺寸 / 位置 / 方向（含旋转）/ 外观完全一致的副本
+  function copyItem(src) {
+    if (src.type === 'csg') {  // 布尔体：直接克隆静态几何与变换
+      src.mesh.updateWorldMatrix(true, false);
+      const geo = src.mesh.geometry.clone();
+      const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(src.params.color), transparent: src.params.opacity < 1, opacity: src.params.opacity, side: THREE.DoubleSide, roughness: 0.7, metalness: 0.05 });
+      const copy = addCsgItem(geo, mat, src.params.name + ' 副本', false);
+      const p = copy.params, s = src.params;
+      p.x = s.x; p.y = s.y; p.z = s.z; p.rx = s.rx; p.ry = s.ry; p.rz = s.rz;
+      p.scale = s.scale; p.sx = s.sx; p.sy = s.sy; p.sz = s.sz; p.visible = s.visible;
+      applyParams(copy); renderList(); select(copy); return;
+    }
+    const copy = buildItem(src.type);
+    if (!copy) return;
+    const p = copy.params, s = src.params;
+    p.name = s.name + ' 副本';
+    p.size = Object.assign({}, s.size);
+    p.x = s.x; p.y = s.y; p.z = s.z;
+    p.rx = s.rx; p.ry = s.ry; p.rz = s.rz;
+    p.scale = s.scale; p.sx = s.sx; p.sy = s.sy; p.sz = s.sz;
+    p.color = s.color; p.opacity = s.opacity; p.visible = s.visible;
+    if (s.text != null) p.text = s.text;
+    rebuildGeometry(copy);   // 重建几何（含文字体）
+    applyParams(copy);       // 应用位置 / 旋转 / 缩放 / 颜色 / 透明度 / 显隐
+    renderList();
+    select(copy);
+  }
+
+  // ---------- 布尔运算（CSG）：并集 / 差集 / 交集 ----------
+  // 把选中体的「局部几何」按世界矩阵烘焙到世界坐标系，供 CSG 用。
+  // 注意：fromMesh(mesh) 会用 mesh.matrix 变换「局部几何」，所以这里只设临时 mesh 的 matrix = 世界矩阵，几何保持局部，避免双重变换。
+  function bakeWorldMesh(item) {
+    const src = item.mesh;
+    src.updateWorldMatrix(true, false);
+    const m = new THREE.Mesh(src.geometry.clone(), src.material);
+    m.matrix.copy(src.matrixWorld);
+    m.matrixAutoUpdate = false;
+    return m;
+  }
+
+  // 新增一个「布尔体」项目（静态几何，非参数化，可像普通体一样选中/拖拽/改色/导出）
+  function addCsgItem(geometry, material, name, worldFromCsg) {
+    // 布尔运算结果是「世界坐标系」几何（顶点已含 A/B 的世界变换）。若直接挂进 Group，
+    // TransformControls 手柄会落在原点 (0,0,0)，与几何分离、且无法绕几何中心旋转。
+    // 这里把几何平移到「以包围盒中心为局部原点」，由 root.position 承载该中心，
+    // 使手柄落在几何中心，与普通基础体行为完全一致。复制路径传 worldFromCsg===false（几何已归位）。
+    let center = null;
+    if (worldFromCsg !== false) {
+      geometry.computeBoundingBox();
+      const bb = geometry.boundingBox;
+      if (bb && isFinite(bb.min.x) && isFinite(bb.max.x)) {
+        center = new THREE.Vector3(); bb.getCenter(center);
+        geometry.translate(-center.x, -center.y, -center.z);
+      }
+    }
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    const root = new THREE.Group(); root.add(mesh);
+    primitiveGroup.add(root);
+    const p = {
+      type: 'csg', name: name || ('布尔体' + (++PRIM.seq)),
+      size: {}, x: center ? center.x : 0, y: center ? center.y : 0, z: center ? center.z : 0, rx: 0, ry: 0, rz: 0,
+      scale: 1, sx: 1, sy: 1, sz: 1,
+      color: '#' + material.color.getHexString(),
+      opacity: (material.opacity != null) ? material.opacity : 1,
+      visible: true,
+    };
+    const item = { id: 'p' + (++PRIM.idc), type: 'csg', root, mesh, geometry, params: p };
+    mesh.userData.primItem = item;
+    applyParams(item);
+    PRIM.list.push(item);
+    return item;
+  }
+
+  function performBool(op) {
+    const aId = $('primBoolA').value, bId = $('primBoolB').value;
+    if (!aId || !bId) { setStatus('⚠ 请先在「体 A / 体 B」下拉里各选一个体'); return; }
+    if (aId === bId) { setStatus('⚠ 体 A 和体 B 不能相同，请选两个不同的体'); return; }
+    const A = PRIM.list.find(i => i.id === aId), B = PRIM.list.find(i => i.id === bId);
+    if (!A || !B) { setStatus('⚠ 选中的体已不存在，请重新选择'); return; }
+    setStatus('🔄 正在做布尔运算（' + ({ union: '合并', subtract: '相减', intersect: '相交' }[op]) + '）…');
+    // 用 setTimeout 让状态栏先刷新，避免卡顿误以为无响应
+    setTimeout(() => {
+      try {
+        const mA = bakeWorldMesh(A), mB = bakeWorldMesh(B);
+        const csgA = CSG.fromMesh(mA), csgB = CSG.fromMesh(mB);
+        const resCSG = (op === 'union') ? csgA.union(csgB) : (op === 'subtract') ? csgA.subtract(csgB) : csgA.intersect(csgB);
+        const mat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(A.params.color),
+          transparent: A.params.opacity < 1, opacity: A.params.opacity,
+          side: THREE.DoubleSide, roughness: 0.7, metalness: 0.05,
+        });
+        // toMatrix 传单位矩阵：输入已是世界坐标，输出几何保持世界坐标
+        const resultMesh = CSG.toMesh(resCSG, new THREE.Matrix4(), mat);
+        const item = addCsgItem(resultMesh.geometry, mat, ({ union: '合并', subtract: '相减', intersect: '相交' }[op]) + '体' + (++PRIM.seq));
+        if (!$('primBoolKeep').checked) {
+          [A, B].forEach(it => { it.params.visible = false; applyParams(it); });
+        }
+        refreshHelper(); renderList(); select(item);
+        setStatus('✅ 布尔运算完成：' + item.params.name + '（已生成新体，可继续移动/旋转/缩放/改色/导出）');
+      } catch (e) {
+        console.error(e); setStatus('❌ 布尔运算失败：' + (e && e.message || e));
+      }
+    }, 30);
+  }
+
+  function refreshBoolSelects() {
+    const aSel = $('primBoolA'), bSel = $('primBoolB');
+    const curA = aSel.value, curB = bSel.value;
+    [aSel, bSel].forEach(sel => {
+      const label = (sel === aSel) ? '体 A' : '体 B';
+      sel.innerHTML = '<option value="">' + label + '</option>';
+      PRIM.list.forEach(it => {
+        const o = document.createElement('option'); o.value = it.id; o.textContent = it.params.name; sel.appendChild(o);
+      });
+    });
+    // 默认把当前选中体填到 A（之前选过则保留）
+    if (curA && PRIM.list.some(i => i.id === curA)) aSel.value = curA;
+    else if (PRIM.sel) aSel.value = PRIM.sel.id;
+    if (curB && PRIM.list.some(i => i.id === curB)) bSel.value = curB;
+  }
+
+  function renderList() {
+    emptyEl.style.display = PRIM.list.length ? 'none' : '';
+    listEl.innerHTML = '';
+    PRIM.list.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'ov-item' + (PRIM.sel === item ? ' active' : '') + (item.params.visible ? '' : ' off');
+      const meta = TYPES[item.type] || { icon: '🧩', label: '布尔体' };
+      el.innerHTML = '<span class="ov-name"><b>' + esc(item.params.name) + '</b><small>' + meta.icon + ' ' + meta.label + '</small></span>';
+      const eye = document.createElement('button'); eye.className = 'ov-eye'; eye.title = '显示/隐藏'; eye.textContent = item.params.visible ? '👁' : '🚫';
+      eye.addEventListener('click', (e) => { e.stopPropagation(); item.params.visible = !item.params.visible; applyParams(item); renderList(); });
+      const copy = document.createElement('button'); copy.className = 'ov-copy'; copy.title = '复制（尺寸/位置/方向完全一致）'; copy.textContent = '📋';
+      copy.addEventListener('click', (e) => { e.stopPropagation(); copyItem(item); });
+      const del = document.createElement('button'); del.className = 'ov-del'; del.title = '删除'; del.textContent = '🗑';
+      del.addEventListener('click', (e) => { e.stopPropagation(); removeItem(item); });
+      el.appendChild(eye); el.appendChild(copy); el.appendChild(del);
+      el.addEventListener('click', () => select(item));
+      listEl.appendChild(el);
+    });
+    refreshBoolSelects();
+  }
+
+  function syncPanelFromParams() {
+    if (!PRIM.sel) return;
+    const p = PRIM.sel.params;
+    $('primName').value = p.name;
+    $('primSizeGrid').querySelectorAll('input').forEach(inp => { const k = inp.dataset.key; if (p.size[k] != null) inp.value = p.size[k]; });
+    $('primPosX').value = +p.x.toFixed(2); $('primPosY').value = +p.y.toFixed(2); $('primPosZ').value = +p.z.toFixed(2);
+    $('primRotX').value = Math.round(p.rx); $('primRotY').value = Math.round(p.ry); $('primRotZ').value = Math.round(p.rz);
+    const sv = Math.max(-2, Math.min(2, Math.log10(Math.max(p.scale, 1e-9))));
+    $('primScale').value = sv; $('primScaleVal').textContent = '×' + fmtScale(p.scale);
+    $('primSX').value = +p.sx.toFixed(3); $('primSY').value = +p.sy.toFixed(3); $('primSZ').value = +p.sz.toFixed(3);
+    $('primColor').value = p.color; $('primOpacity').value = p.opacity; $('primOpacityVal').textContent = Math.round(p.opacity * 100) + '%';
+    $('primVisible').checked = p.visible;
+  }
+
+  // ---------- 浮窗开关 + 标题栏拖动 ----------
+  function openDlg() { dlg.classList.add('active'); if (PRIM.sel) select(PRIM.sel); }
+  function closeDlg() { dlg.classList.remove('active'); if (PRIM.tc) PRIM.tc.detach(); }
+  $('btnPrimitives').addEventListener('click', () => { dlg.classList.contains('active') ? closeDlg() : openDlg(); });
+  $('btnPrimClose').addEventListener('click', closeDlg);
+  // 最小化只收起面板，不影响选中状态（失焦只由“点画面空白处”触发）
+  $('btnPrimMin').addEventListener('click', () => { $('primContent').classList.toggle('minimized'); });
+
+  (function () {
+    const bar = $('primTitlebar'), panel = $('primPanel');
+    let on = false, sx = 0, sy = 0, ox = 0, oy = 0;
+    bar.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      on = true; sx = e.clientX; sy = e.clientY;
+      const r = panel.getBoundingClientRect(); ox = r.left; oy = r.top;
+      try { bar.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    bar.addEventListener('pointermove', (e) => {
+      if (!on) return;
+      panel.style.position = 'fixed'; panel.style.margin = '0';
+      panel.style.left = (ox + e.clientX - sx) + 'px';
+      panel.style.top = (oy + e.clientY - sy) + 'px';
+    });
+    bar.addEventListener('pointerup', () => { on = false; });
+    bar.addEventListener('pointercancel', () => { on = false; });
+  })();
+
+  // ---------- TransformControls 拖拽手柄 ----------
+  PRIM.tc = new TransformControls(camera, renderer.domElement);
+  PRIM.tc.setSize(0.85);
+  scene.add(PRIM.tc);
+  PRIM.tc.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value; });
+  PRIM.tc.addEventListener('objectChange', () => {
+    if (!PRIM.sel) return;
+    const r = PRIM.sel.root, p = PRIM.sel.params;
+    p.x = r.position.x; p.y = r.position.y; p.z = r.position.z;
+    p.rx = Math.round(r.rotation.x / D2R);
+    p.ry = Math.round(r.rotation.y / D2R);
+    p.rz = Math.round(r.rotation.z / D2R);
+    const sx = r.scale.x, sy = r.scale.y, sz = r.scale.z;
+    p.scale = Math.max(1e-4, (sx + sy + sz) / 3);
+    p.sx = Math.max(1e-4, sx / p.scale); p.sy = Math.max(1e-4, sy / p.scale); p.sz = Math.max(1e-4, sz / p.scale);
+    syncPanelFromParams();
+    refreshHelper();
+  });
+  setInterval(() => { if (PRIM.tc && PRIM.tc.camera !== camera) PRIM.tc.camera = camera; }, 300);
+
+  // ---------- 添加按钮 ----------
+  $('primAddGrid').querySelectorAll('[data-type]').forEach(b => b.addEventListener('click', () => {
+    try {
+      const item = buildItem(b.dataset.type);
+      if (item) select(item);
+    } catch (e) { console.error(e); setStatus('❌ 添加失败：' + (e.message || e)); }
+  }));
+
+  // ---------- 参数输入绑定 ----------
+  $('primName').addEventListener('input', () => { if (!PRIM.sel) return; PRIM.sel.params.name = $('primName').value; renderList(); });
+  $('primText').addEventListener('input', () => { if (!PRIM.sel || PRIM.sel.type !== 'text') return; PRIM.sel.params.text = $('primText').value; rebuildGeometry(PRIM.sel); refreshHelper(); });
+  $('primColor').addEventListener('input', () => { if (!PRIM.sel) return; PRIM.sel.params.color = $('primColor').value; applyParams(PRIM.sel); });
+  $('primOpacity').addEventListener('input', () => { if (!PRIM.sel) return; const v = parseFloat($('primOpacity').value); PRIM.sel.params.opacity = v; $('primOpacityVal').textContent = Math.round(v * 100) + '%'; applyParams(PRIM.sel); });
+  $('primVisible').addEventListener('change', () => { if (!PRIM.sel) return; PRIM.sel.params.visible = $('primVisible').checked; applyParams(PRIM.sel); renderList(); });
+  ['primPosX', 'primPosY', 'primPosZ'].forEach((id, i) => $(id).addEventListener('input', () => { if (!PRIM.sel) return; const v = parseFloat($(id).value); if (isNaN(v)) return; PRIM.sel.params[['x', 'y', 'z'][i]] = v; applyParams(PRIM.sel); refreshHelper(); }));
+  ['primRotX', 'primRotY', 'primRotZ'].forEach((id, i) => $(id).addEventListener('input', () => { if (!PRIM.sel) return; const v = parseFloat($(id).value); if (isNaN(v)) return; PRIM.sel.params[['rx', 'ry', 'rz'][i]] = v; applyParams(PRIM.sel); refreshHelper(); }));
+  ['primSX', 'primSY', 'primSZ'].forEach((id, i) => $(id).addEventListener('input', () => { if (!PRIM.sel) return; const v = parseFloat($(id).value); if (isNaN(v) || v <= 0) return; PRIM.sel.params[['sx', 'sy', 'sz'][i]] = v; applyParams(PRIM.sel); refreshHelper(); }));
+  $('primScale').addEventListener('input', (e) => { if (!PRIM.sel) return; PRIM.sel.params.scale = Math.pow(10, parseFloat(e.target.value)); $('primScaleVal').textContent = '×' + fmtScale(PRIM.sel.params.scale); applyParams(PRIM.sel); refreshHelper(); });
+  paramsEl.querySelectorAll('.ov-mode').forEach((b) => b.addEventListener('click', () => { PRIM.mode = b.dataset.mode; paramsEl.querySelectorAll('.ov-mode').forEach(x => x.classList.toggle('active', x === b)); if (PRIM.tc) PRIM.tc.setMode(PRIM.mode); }));
+  ['primGround', 'primCenter', 'primReset'].forEach(id => $(id).addEventListener('click', () => {
+    if (!PRIM.sel) return; const p = PRIM.sel.params;
+    applyParams(PRIM.sel);
+    const wb = new THREE.Box3().setFromObject(PRIM.sel.root);
+    if (id === 'primGround') p.y -= wb.min.y;
+    else if (id === 'primCenter') { p.x -= (wb.min.x + wb.max.x) / 2; p.z -= (wb.min.z + wb.max.z) / 2; }
+    else { p.x = 0; p.y = 0; p.z = 0; p.rx = 0; p.ry = 0; p.rz = 0; p.sx = 1; p.sy = 1; p.sz = 1; p.scale = 1; }
+    applyParams(PRIM.sel); syncPanelFromParams(); refreshHelper();
+  }));
+
+  // ---------- 导出 / 清空 ----------
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+  }
+  $('primExportGLB').addEventListener('click', () => {
+    if (!PRIM.list.length) { setStatus('没有可导出的基础体'); return; }
+    const exp = new GLTFExporter();
+    exp.parse(primitiveGroup, (result) => {
+      const blob = new Blob([result], { type: 'model/gltf-binary' });
+      downloadBlob(blob, 'primitives.glb');
+      setStatus('已导出 primitives.glb');
+    }, (err) => { console.error(err); setStatus('导出 GLB 失败：' + (err && err.message || err)); }, { binary: true });
+  });
+  $('primExportOBJ').addEventListener('click', () => {
+    if (!PRIM.list.length) { setStatus('没有可导出的基础体'); return; }
+    const exp = new OBJExporter();
+    const txt = exp.parse(primitiveGroup);
+    downloadBlob(new Blob([txt], { type: 'text/plain' }), 'primitives.obj');
+    setStatus('已导出 primitives.obj');
+  });
+  $('primClear').addEventListener('click', () => {
+    if (!PRIM.list.length) return;
+    if (!confirm('确定清空所有基础体？')) return;
+    PRIM.list.forEach(i => { primitiveGroup.remove(i.root); disposeItem(i); });
+    PRIM.list = []; deselect(); renderList();
+  });
+
+  // ---------- 布尔运算按钮 ----------
+  $('primBoolUnion').addEventListener('click', () => performBool('union'));
+  $('primBoolSub').addEventListener('click', () => performBool('subtract'));
+  $('primBoolInter').addEventListener('click', () => performBool('intersect'));
+
+  // ---------- 保存到叠加服务器（复用 overlay 上传后端 overlay_files.php?action=upload） ----------
+  const savePwdRow = $('primSavePwdRow'), savePwdInput = $('primSavePwd'), saveHint = $('primSaveHint');
+  async function primSaveToOverlay(pwd) {
+    const folder = (typeof currentProject !== 'undefined' && currentProject && currentProject.folder) ? String(currentProject.folder) : null;
+    if (!folder) { setStatus('❌ 本地 / URL 打开的模型没有项目目录，无法保存到服务器'); return; }
+    if (!PRIM.list.length) { setStatus('⚠ 还没有基础体，先画一个再保存'); return; }
+    setStatus('🔄 正在导出并上传到叠加服务器…');
+    const exp = new GLTFExporter();
+    exp.parse(primitiveGroup, async (result) => {
+      const blob = new Blob([result], { type: 'model/gltf-binary' });
+      const f = new File([blob], 'primitives.glb', { type: 'model/gltf-binary' });
+      const fd = new FormData();
+      fd.append('files[]', f, f.name); fd.append('folder', folder); fd.append('pwd', pwd);
+      try {
+        const r = await fetch('overlay_files.php?action=upload', { method: 'POST', body: fd });
+        const j = await r.json();
+        if (j && j.success) {
+          try { localStorage.setItem('odm_write_pwd', pwd); } catch (_) {}
+          savePwdRow.style.display = 'none'; savePwdInput.value = ''; saveHint.textContent = '';
+          setStatus('✅ 已保存 ' + j.count + ' 个文件到 ' + j.dir + '（打开「叠加模型」面板即可看到）');
+        } else if (j && j.needAuth) {
+          saveHint.textContent = '❌ 管理密码不对，请重新输入'; savePwdRow.style.display = ''; savePwdInput.focus();
+        } else {
+          setStatus('❌ 保存失败：' + ((j && j.error) || '未知错误'));
+        }
+      } catch (e) { setStatus('❌ 保存失败（网络错误）：' + (e.message || e)); }
+    }, (err) => { console.error(err); setStatus('导出 GLB 失败：' + (err && err.message || err)); }, { binary: true });
+  }
+  $('primSaveOverlay').addEventListener('click', () => {
+    const pwd = (typeof odmWritePwd === 'function') ? odmWritePwd() : '';
+    if (pwd) { primSaveToOverlay(pwd); return; }
+    saveHint.textContent = '请先填管理密码（与上传 / 删除项目同一把），再点保存';
+    savePwdRow.style.display = ''; savePwdInput.focus();
+  });
+  $('primSavePwdOk').addEventListener('click', () => {
+    const pwd = (savePwdInput.value || '').trim();
+    if (!pwd) { saveHint.textContent = '请输入管理密码'; return; }
+    primSaveToOverlay(pwd);
+  });
+  savePwdInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('primSavePwdOk').click(); });
+
+  // ---------- 画面点选基础体（测量工具让位） ----------
+  // 焦点规则：点画面空白处（没命中任何基础体）= 失去焦点，控制手柄 + 绿框消失；
+  //           点基础体本体 / 点列表里的名字 = 重新获得焦点，手柄出现。
+  let pd = null, pdOnGizmo = false;
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    pd = { x: e.clientX, y: e.clientY };
+    // TransformControls 于本监听之前 connect，它的 pointerdown 已先跑完，
+    // 所以此刻 axis / dragging 就代表“这一下是不是按在手柄上”。按在手柄上则不动选中状态。
+    pdOnGizmo = !!(PRIM.tc && PRIM.tc.object && (PRIM.tc.dragging || PRIM.tc.axis));
+  });
+  renderer.domElement.addEventListener('pointerup', (e) => {
+    const onGizmo = pdOnGizmo; pdOnGizmo = false;
+    if (!pd) return;
+    const moved = Math.hypot(e.clientX - pd.x, e.clientY - pd.y);
+    pd = null;
+    if (moved > 6) return;                                                     // 拖视角 / 拖手柄，不算点击
+    if (!dlg.classList.contains('active')) return;                             // 面板没开不抢点击
+    if (typeof currentTool !== 'undefined' && currentTool !== 'none') return;   // 测量 / 裁剪工具让位
+    if (onGizmo) return;                                                       // 点在手柄上 = 保持当前选中
+    const rect = renderer.domElement.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+    const rc = new THREE.Raycaster(); rc.setFromCamera(ndc, camera); rc.firstHitOnly = true;
+    // 注意：基础体的显隐存在 params.visible 里（不是 item.visible）
+    const roots = PRIM.list.filter(i => i.params.visible !== false).map(i => i.root);
+    const hits = roots.length ? rc.intersectObjects(roots, true) : [];
+    if (!hits.length) { if (PRIM.sel) deselect(); return; }                     // 点空白 = 失去焦点
+    const hitObj = hits[0].object;
+    const item = PRIM.list.find(i => { let n = hitObj; while (n) { if (n === i.root) return true; n = n.parent; } return false; });
+    if (item && item !== PRIM.sel) select(item);
+  });
+
+  renderList();
+})();
+
 </script>
 
 </div><!-- /#viewerPage -->
