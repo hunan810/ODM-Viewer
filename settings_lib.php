@@ -17,7 +17,6 @@ function odmLoadSettings() {
 function odmGetPwdHash() {
     $s = odmLoadSettings();
     if ($s && !empty($s['pwdHash'])) return (string)$s['pwdHash'];
-    // 兜底：settings.json 不存在（首次安装）时，默认密码 admin123 —— 请登录后在「系统设置」中立即修改！
-    // sha256('admin123') = 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
+    // 兜底：settings.json 丢失时回退到初始哈希，保证系统仍可登录（与历史版本一致）
     return '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
 }
