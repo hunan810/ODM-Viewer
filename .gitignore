@@ -6,6 +6,9 @@ files/
 index.html00
 *.zip
 
+# 瓦片代理的磁盘缓存（tile_proxy.php 运行时生成）
+cache/
+
 # 主机环境文件
 .user.ini
 .workbuddy/

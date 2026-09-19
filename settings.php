@@ -43,12 +43,13 @@ function odmWriteSettings($data) {
     return ['ok' => true];
 }
 
-// ---------- GET：返回站点名（公开，不含密码哈希）----------
+// ---------- GET：返回站点名 + 高德 Key（公开，不含密码哈希）----------
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $s = odmLoadSettings();
     echo json_encode([
         'success'  => true,
-        'siteName' => $s ? (isset($s['siteName']) ? $s['siteName'] : '') : ''
+        'siteName' => $s ? (isset($s['siteName']) ? $s['siteName'] : '') : '',
+        'amapKey'  => $s ? (isset($s['amapKey']) ? $s['amapKey'] : '') : ''
     ]);
     exit;
 }
@@ -75,6 +76,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 新密码（选填，非空则更新哈希）
     if (isset($_POST['newPwd']) && strval($_POST['newPwd']) !== '') {
         $s['pwdHash'] = hash('sha256', strval($_POST['newPwd']));
+    }
+
+    // 高德地图 Key（选填，允许清空：字段存在即覆盖，可为空字符串）
+    if (array_key_exists('amapKey', $_POST)) {
+        $s['amapKey'] = trim(strval($_POST['amapKey']));
     }
 
     // LOGO 文件覆盖（PC / 移动端）
